@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {}
+    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {}
   },
   "projects": {
-    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {
+    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+        "projectUniqueName": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
         "projectName": "PathMet_V2",
-        "projectPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+        "projectPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
         "packagesPath": "C:\\Users\\Charles\\.nuget\\packages\\",
-        "outputPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\obj\\",
+        "outputPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\obj\\",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
         "fallbackFolders": [

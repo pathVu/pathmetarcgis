@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "puAeQyE6MmFpP91HY70cM0m4+lXE2krS8KbXVb+9mDIJWUBrqL4/jaPIPO/Xk+8uwgsxdSra9EuFP1rZJd/SwA==",
+  "dgSpecHash": "PTWKvm2ODrctYloMvYH/ZW05+W+MV4UTUscSiaYxXSlcKPYfyimBYfrX7njD2A/NDjFJwtUOEDv+YWwwP/lNwg==",
   "success": true,
-  "projectFilePath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+  "projectFilePath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Charles\\.nuget\\packages\\esri.arcgisruntime\\100.8.0\\esri.arcgisruntime.100.8.0.nupkg.sha512",
     "C:\\Users\\Charles\\.nuget\\packages\\esri.arcgisruntime.wpf\\100.8.0\\esri.arcgisruntime.wpf.100.8.0.nupkg.sha512",
