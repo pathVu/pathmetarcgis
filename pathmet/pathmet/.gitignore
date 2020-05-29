@@ -1,0 +1,9 @@
+pathmet.vcxproj.*
+pathmet.log
+tests/csv
+tests/encoder
+tests/imu
+tests/laser
+tests/server
+x64
+.vs
