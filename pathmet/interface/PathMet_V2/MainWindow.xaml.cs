@@ -29,11 +29,12 @@ using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Symbology;
 using System.Drawing;
 using Esri.ArcGISRuntime.UI.Controls;
+using Esri.ArcGISRuntime.Security;
 using Color = System.Drawing.Color;
 using Esri.ArcGISRuntime.Location;
 using OpenCvSharp.Aruco;
 using System.Data.SqlTypes;
-using System.Net;
+using System.Threading;
 
 namespace PathMet_V2
 {
@@ -631,5 +632,39 @@ namespace PathMet_V2
 
         #endregion
 
+        #region User_Functions
+
+        ArcGISPortal portal;
+        PortalUser user;
+
+        private void loginBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Login L = new Login();
+            L.ShowDialog();
+        }
+
+
+        private async void LogIn(String userName, String password)
+        {
+            // generate an ArcGISTokenCredential using input from the user (username and password)
+            var cred = await AuthenticationManager.Current.GenerateCredentialAsync(
+                                                            new Uri("http://anorganization.maps.arcgis.com/sharing/rest"),
+                                                            userName,
+                                                            password) as ArcGISTokenCredential;
+
+            // connect to the portal, pass in the token 
+            portal = await ArcGISPortal.CreateAsync(
+                                                            new Uri("http://anorganization.maps.arcgis.com/sharing/rest"),
+                                                            cred,
+                                                            CancellationToken.None);
+
+            // get the current portal user and check privileges
+            user = portal.User;
+            IEnumerable<PortalPrivilege> privileges = user.Privileges;
+        }
+
+        #endregion
+
+        
     }
 }

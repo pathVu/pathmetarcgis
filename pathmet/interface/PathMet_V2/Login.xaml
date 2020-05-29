@@ -1,0 +1,33 @@
+﻿<Window x:Class="PathMet_V2.Login"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PathMet_V2"
+        mc:Ignorable="d"
+        Title="Login" Height="450" Width="800">
+    <Border Margin="10">
+    <StackPanel Width="500" MaxWidth="500" VerticalAlignment="Center">
+        
+            <TextBlock Text="PathMet - ArcGIS Login" FontWeight="Bold" FontSize="16" Margin="0,10"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Label Content="UserName" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right"/>
+                <TextBox x:Name="userNameTxt" Grid.Column="1" Grid.Row="0"/>
+                <Label Content="Password" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right"/>
+                <TextBox x:Name="passwordTxt" Grid.Column="1" Grid.Row="1"/>
+            </Grid>
+            <Button x:Name="LoginSubmitBtn" Content="Submit" HorizontalAlignment="Center" Padding="10,5" Margin="5"/>
+
+    </StackPanel>
+    </Border>
+</Window>
