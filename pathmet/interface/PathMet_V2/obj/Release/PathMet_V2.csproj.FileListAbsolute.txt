@@ -932,7 +932,6 @@ R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bi
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\OpenCvSharp.UserInterface.pdb
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\OpenCvSharp.dll
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\OpenCvSharp.pdb
-R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\MainWindow.g.cs
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\App.g.cs
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2_Content.g.cs
@@ -946,5 +945,4 @@ R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\ob
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csproj.CopyComplete
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.exe
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.pdb
-R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\Login.g.cs
-R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\Login.baml
+R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache
