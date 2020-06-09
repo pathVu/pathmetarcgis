@@ -17,7 +17,7 @@
             <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
-        <esri:MapView x:Name="MyMapView" Grid.Column="0" />
+        <esri:MapView x:Name="MyMapView" Grid.Column="0"/>
         <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="5,3,5,0" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
         <StackPanel x:Name="PastRunDistContainer" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Hidden">
             <TextBlock x:Name="pastRunDistLabel" Grid.Column="0" Text="Past Run:" Margin="2,1" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
@@ -25,8 +25,11 @@
         </StackPanel>
         
         <!-- Drawing edit and restart buttons-->
-        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Visible">
-            <Button Content="Restart Drawing" x:Name="restartDrawingBtn" Margin="5" Padding="5" Click="RestartDrawingRun" FontSize="14" />
+        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
+            <Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="14" />
+            <Button Content="Undo" x:Name="undoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding UndoCommand}" />
+            <Button Content="Redo" x:Name="redoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding RedoCommand}"/>
+            <Button Content="Done" x:Name="doneBtn" Margin="5" Padding="5"  FontSize="14" Command="{Binding CompleteCommand}" Click="doneDrawingLine_Click"/>
         </StackPanel>
         
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="RunControlsPanel" >

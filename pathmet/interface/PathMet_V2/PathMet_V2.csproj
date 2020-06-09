@@ -80,6 +80,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="OAuthAuthorize.cs" />
     <Compile Include="SketchOnMap.cs" />
     <Compile Include="RunGeometryEditor.cs" />
     <Compile Include="Sensors.cs" />
