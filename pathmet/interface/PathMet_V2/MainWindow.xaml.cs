@@ -52,10 +52,9 @@ namespace PathMet_V2
 
             InitializeUI();
 
+            //InitializeMap();
+
             InitializeAuthentication();
-
-            InitializeMap();
-
 
             sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
             sensors.UpdateEvent += OnUpdate;
@@ -70,7 +69,6 @@ namespace PathMet_V2
             {
                 this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
             };
-
         }
 
         void Window_Closing(object sender, CancelEventArgs e)
@@ -78,7 +76,6 @@ namespace PathMet_V2
             sensors.UpdateEvent -= OnUpdate;
             sensors.Dispose();
         }
-
 
         delegate void UpdateSensorsDel();
 
@@ -216,10 +213,10 @@ namespace PathMet_V2
             MyMapView.GeoViewTapped -= StartPt_Tapped;
             UpdateUI_RunInProgress();
 
-            // disable everything; the sensor will enable it when ready
+            //disable everything; the sensor will enable it when ready
 
             //for testing onStop functionality, should be uncommented
-            /*txtFName.IsEnabled = false;
+            txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
             
@@ -232,10 +229,8 @@ namespace PathMet_V2
             }
 
             sensors.Start(name);
-            */
+            
 
-            //for testing onStop functionality, shouldn't be here normally
-            WaitForEndPt();
         }
 
         private void btnRestart_Click(object sender, EventArgs e)
@@ -306,56 +301,68 @@ namespace PathMet_V2
 
         private void InitializeMap()
         {
-            //basemap
-            //Map newMap = new Map(Basemap.CreateNavigationVector());
+            Console.WriteLine("Initializing Map");
+            
+            //if user has a map selected, load that map
+            if (UserMapsBox.SelectedIndex == 0)
+            {
+                MyMapView.Map = new Map();
+                UpdateUI_WaitForLogin();
+            }
+            else
+            {
+                try
+                {
+                    var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
+                    Console.WriteLine(mapId);
+                    var webMapUrl = string.Format("https://www.arcgisonline.com/sharing/rest/content/items/{0}/data", mapId);
+                    Map currentMap = new Map(new Uri(webMapUrl));
 
-            //add pathvu specific map to mapView
+                    //drawing initialization
 
-            //var mapId = "8ff831ddf02344cda858a37c742804dc";
-            //var webMapUrl = string.Format("https://www.arcgisonline.com/sharing/rest/content/items/{0}/data", mapId);
-            // Map currentMap = new Map(new Uri(webMapUrl));
-            Map currentMap = new Map();
+                    // Add a graphics overlay for showing the run line. 
+                    runsLineOverlay = new GraphicsOverlay();
+                    SimpleLineSymbol runLineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.Aqua, 5);
+                    runsLineOverlay.Renderer = new SimpleRenderer(runLineSymbol);
+                    MyMapView.GraphicsOverlays.Add(runsLineOverlay);
 
-            //drawing initialization
+                    // Add a graphics overlay for showing the run points.
+                    runsPointOverlay = new GraphicsOverlay();
+                    SimpleMarkerSymbol runMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 10);
+                    runsPointOverlay.Renderer = new SimpleRenderer(runMarkerSymbol);
+                    MyMapView.GraphicsOverlays.Add(runsPointOverlay);
 
-            // Add a graphics overlay for showing the run line. 
-            runsLineOverlay = new GraphicsOverlay();
-            SimpleLineSymbol runLineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.Aqua, 5);
-            runsLineOverlay.Renderer = new SimpleRenderer(runLineSymbol);
-            MyMapView.GraphicsOverlays.Add(runsLineOverlay);
+                    // Add a graphics overlay for showing the startPt.
+                    startPointOverlay = new GraphicsOverlay();
+                    SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.LightGreen, 10);
+                    startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
+                    MyMapView.GraphicsOverlays.Add(startPointOverlay);
 
-            // Add a graphics overlay for showing the run points.
-            runsPointOverlay = new GraphicsOverlay();
-            SimpleMarkerSymbol runMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 10);
-            runsPointOverlay.Renderer = new SimpleRenderer(runMarkerSymbol);
-            MyMapView.GraphicsOverlays.Add(runsPointOverlay);
+                    // Add a graphics overlay for showing the endPt.
+                    endPointOverlay = new GraphicsOverlay();
+                    SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.DarkRed, 10);
+                    endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
+                    MyMapView.GraphicsOverlays.Add(endPointOverlay);
 
-            // Add a graphics overlay for showing the startPt.
-            startPointOverlay = new GraphicsOverlay();
-            SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.LightGreen, 10);
-            startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
-            MyMapView.GraphicsOverlays.Add(startPointOverlay);
+                    //create polyline builder
+                    //polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
 
-            // Add a graphics overlay for showing the endPt.
-            endPointOverlay = new GraphicsOverlay();
-            SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.DarkRed, 10);
-            endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
-            MyMapView.GraphicsOverlays.Add(endPointOverlay);
+                    //map assignment
+                    MyMapView.Map = currentMap;
 
+                    DataContext = MyMapView.SketchEditor;
 
+                    //extent settings for navigation mode
+                    MyMapView.LocationDisplay.IsEnabled = true;
 
-            //create polyline builder
-            //polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
-
-            //map assignment
-            MyMapView.Map = currentMap;
-
-            DataContext = MyMapView.SketchEditor;
-
-            //extent settings for navigation mode
-            MyMapView.LocationDisplay.IsEnabled = true;
-
-            MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.CompassNavigation;
+                    MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.CompassNavigation;
+                }
+                catch
+                {
+                    throw;
+                }
+                
+            }
         }
 
         
@@ -515,27 +522,6 @@ namespace PathMet_V2
         {
             return 20.0;
         }
-
-        private void RestartDrawingRun(object sender, EventArgs e)
-        {
-            //clear the current polyline and points 
-            polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
-            runsLineOverlay.Graphics.Clear();
-            startPointOverlay.Graphics.Clear();
-            runsPointOverlay.Graphics.Clear();
-            endPointOverlay.Graphics.Clear();
-
-            //add the starting point back to the line
-            polyLineBuilder.AddPoint(startPoint);
-            startPointOverlay.Graphics.Add(new Graphic(startPoint));
-            runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
-
-            MyMapView.DismissCallout();
-            UpdateUI_waitForEndPt();
-            //delete this comment
-
-        }
-
         #endregion
 
         #region UI_functions
@@ -568,6 +554,11 @@ namespace PathMet_V2
             chkbxI.IsChecked = false;
             chkbxE.Background = System.Windows.Media.Brushes.Transparent;
             chkbxE.IsChecked = false;
+        }
+
+        private void UpdateUI_WaitForLogin()
+        {
+            StatusTxt.Text = "Log In to Load a Map";
         }
 
         private void UpdateUI_PathMetConnected()
@@ -684,34 +675,71 @@ namespace PathMet_V2
 
         // Constants for OAuth-related values.
         // - The URL of the portal to authenticate with
-        private const string ServerUrl = "https://www.arcgis.com/sharing/rest";
+        private const string ServerUrl = "http://pathvu.maps.arcgis.com/sharing/rest";
+
         // - The Client ID for an app registered with the server (the ID below is for a public app created by the ArcGIS Runtime team).
+        //private const string AppClientId = @"4PYwJ5MaXYfmMjss"; // our actual clientId
         private const string AppClientId = @"lgAdHkYZYlwwfAhC";
+
         // - An optional client secret for the app (only needed for the OAuthAuthorizationCode authorization type).
-        private const string ClientSecret = "";
+        //private const string AppClientSecret = "81bf742b3e2f4d249d16557cc8e41ac9"; //our actual secret
+        private const string AppClientSecret = "";
+
         // - A URL for redirecting after a successful authorization (this must be a URL configured with the app).
         private const string OAuthRedirectUrl = @"my-ags-app://auth";
         // - The ID for a web map item hosted on the server (the ID below is for a traffic map of Paris).
         private const string WebMapId = "807b21d5a5f44d828a80c1c54ca43bea";
 
+        ArcGISPortal portal;
+
+        List<PortalItem> availableMaps;
+
         private async void InitializeAuthentication()
         {
+            UpdateUI_WaitForLogin();
             try
             {
                 // Set up the AuthenticationManager to use OAuth for secure ArcGIS Online requests.
                 SetOAuthInfo();
 
+                await SignIn();
+
                 // Connect to the portal (ArcGIS Online, for example).
-                ArcGISPortal arcgisPortal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
+                portal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
 
-                // Get a web map portal item using its ID.
-                // If the item contains layers not shared publicly, the user will be challenged for credentials at this point.
-                PortalItem portalItem = await PortalItem.CreateAsync(arcgisPortal, WebMapId);
+                //// Get a web map portal item using its ID.
+                //// If the item contains layers not shared publicly, the user will be challenged for credentials at this point.
+                //Console.WriteLine("map challenge");
+                //PortalItem portalItem = await PortalItem.CreateAsync(portal, WebMapId);
 
-                // Create a new map with the portal item and display it in the map view.
-                // If authentication fails, only the public layers are displayed.
-                Map myMap = new Map(portalItem);
-                MyMapView.Map = myMap;
+                //// Create a new map with the portal item and display it in the map view.
+                //// If authentication fails, only the public layers are displayed.
+                //Map myMap = new Map(portalItem);
+                //MyMapView.Map = myMap;
+
+
+                if (portal != null)
+                {
+                    
+                    Console.WriteLine("name: " + portal.User.UserName);
+                    availableMaps = await GetWebMaps(portal);
+                    Console.WriteLine("we got past the maps line");
+                    Console.WriteLine("mapName: " + availableMaps.ElementAt(0).Title);
+
+                    //show the retrieved maps in the dropdown box
+                    foreach (PortalItem map in availableMaps)
+                    {
+                        ComboBoxItem availableMap = new ComboBoxItem();
+                        availableMap.Content = map.Title;
+                        availableMap.Tag = map.ItemId;
+                        UserMapsBox.Items.Add(availableMap);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("portal was null, did not get user maps");
+                }
+                
             }
             catch (Exception e)
             {
@@ -721,11 +749,12 @@ namespace PathMet_V2
 
         private void SetOAuthInfo()
         {
+            Console.WriteLine("Setauth info called");
             // Register the server information with the AuthenticationManager, including the OAuth settings.
             ServerInfo serverInfo = new ServerInfo
             {
-                ServerUri = new Uri(ServerUrl),
-                TokenAuthenticationType = TokenAuthenticationType.OAuthImplicit,
+                ServerUri = new Uri("http://pathvu.maps.arcgis.com/sharing/rest"),
+                TokenAuthenticationType = TokenAuthenticationType.OAuthAuthorizationCode,
                 OAuthClientInfo = new OAuthClientInfo
                 {
                     ClientId = AppClientId,
@@ -733,12 +762,11 @@ namespace PathMet_V2
                 }
             };
 
-            // If a client secret has been configured, set the authentication type to OAuthAuthorizationCode.
-            if (!String.IsNullOrEmpty(ClientSecret))
+            if (!String.IsNullOrEmpty(AppClientSecret))
             {
                 // Use OAuthAuthorizationCode if you need a refresh token (and have specified a valid client secret).
                 serverInfo.TokenAuthenticationType = TokenAuthenticationType.OAuthAuthorizationCode;
-                serverInfo.OAuthClientInfo.ClientSecret = ClientSecret;
+                serverInfo.OAuthClientInfo.ClientSecret = AppClientSecret;
             }
 
             // Register this server with AuthenticationManager.
@@ -769,7 +797,71 @@ namespace PathMet_V2
 
             return credential;
         }
+
+        private async Task SignIn()
+        {
+            CredentialRequestInfo cri = new CredentialRequestInfo
+            {
+                // token authentication
+                AuthenticationType = AuthenticationType.Token,
+                // define the service URI
+                ServiceUri = new Uri(ServerUrl),
+                // OAuth (implicit flow) token type
+                GenerateTokenOptions = new GenerateTokenOptions
+                {
+                    TokenAuthenticationType = TokenAuthenticationType.OAuthAuthorizationCode
+                }
+            };
+
+            try
+            {
+                var crd = await AuthenticationManager.Current.GetCredentialAsync(cri, false);
+
+                AuthenticationManager.Current.AddCredential(crd);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        private async Task SignOut()
+        {
+            // clear the credential for the server from the IdenityManager (if it exists)
+            await AuthenticationManager.Current.RemoveAndRevokeAllCredentialsAsync();
+
+            // access the portal as anonymous
+            this.portal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
+        }
+
+
+        private async Task<List<PortalItem>> GetWebMaps(ArcGISPortal portal)
+        {
+            
+            var groups = portal.User.Groups;
+            var usersMaps = new List<PortalItem>();
+
+            foreach (PortalGroup portalGroup in groups)
+            {
+                Console.WriteLine("grouptitle: " + portalGroup.Title);
+                var parameters = PortalQueryParameters.CreateForItemsOfTypeInGroup(PortalItemType.WebMap, portalGroup.GroupId);
+                parameters.Limit = 50;
+
+                var portalItems = (await portal.FindItemsAsync(parameters)).Results;
+
+                usersMaps.AddRange(portalItems);
+            }
+
+            return usersMaps;
+        }
+
+
         #endregion
+
+        private void InitializeMap(object sender, SelectionChangedEventArgs e)
+        {
+            InitializeMap();
+        }
     }
 
 }

@@ -31,8 +31,19 @@
             <Button Content="Redo" x:Name="redoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding RedoCommand}"/>
             <Button Content="Done" x:Name="doneBtn" Margin="5" Padding="5"  FontSize="14" Command="{Binding CompleteCommand}" Click="doneDrawingLine_Click"/>
         </StackPanel>
+
         
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="RunControlsPanel" >
+            <Grid x:Name="UserInfoContainer">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="InitializeMap">
+                    <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
+                </ComboBox>
+                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" />
+            </Grid>
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Welcome to PathMet</TextBlock>
             <Grid Margin="10 10">
                 <Grid.ColumnDefinitions>
@@ -70,7 +81,9 @@
                 </StackPanel>
             </Grid>
             <Button Content="Restart Service" Name="btnRestart" Margin="10" Padding="5" Click="btnRestart_Click"></Button>
+            
         </StackPanel>
+        
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Hidden">
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Post-Run Controls</TextBlock>
             <Grid Margin="10 10">

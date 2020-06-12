@@ -255,5 +255,7 @@
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("vt_sdf_vs.cso")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("runtimecore.dll")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("runtimecorenet.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("runtimecore.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("runtimecorenet.dll")]
 
 

@@ -121,16 +121,12 @@ namespace PathMet_V2
         
         public SerialSensors(string port)
         {
-            //For debugging
-            Connected = true;
-            //---------------------
+            
             encoder.CallbackDistance = 120.0; // inches
             encoder.Callback += CaptureImage;
 
             sampling = false;
-            //For debugging
-            //sampling = true;
-            //---------------------
+            
 
             serialPort = new SerialPort(port);
 
@@ -160,8 +156,8 @@ namespace PathMet_V2
             }
             catch (Exception)
             {
-                //debugging, this should be uncommented
-                //Connected = false;
+                
+                Connected = false;
             }
         }
 
@@ -328,7 +324,7 @@ namespace PathMet_V2
                     });
             }
 
-//            Console.WriteLine("Update");
+           
 
             lock (csvLock)
             {
