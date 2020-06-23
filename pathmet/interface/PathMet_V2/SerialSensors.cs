@@ -99,7 +99,7 @@ namespace PathMet_V2
 
             OnUpdate();
         }
-
+        
         public void Flag(string flag)
         {
             flagsQueue.Enqueue(flag);
@@ -121,7 +121,11 @@ namespace PathMet_V2
         
         public SerialSensors(string port)
         {
-            
+
+            //For debugging -----------
+            Connected = true; //delete
+            //-----------
+
             encoder.CallbackDistance = 120.0; // inches
             encoder.Callback += CaptureImage;
 
@@ -156,8 +160,9 @@ namespace PathMet_V2
             }
             catch (Exception)
             {
-                
-                Connected = false;
+                //For debugging -----------
+                //Connected = false; //keep
+
             }
         }
 

@@ -216,9 +216,11 @@ namespace PathMet_V2
             //disable everything; the sensor will enable it when ready
 
             //for testing onStop functionality, should be uncommented
-            txtFName.IsEnabled = false;
+            /*txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
+            */ //keep
+            OnStop(sender, e);//delete
             
             
 
@@ -228,7 +230,7 @@ namespace PathMet_V2
                 name = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
             }
 
-            sensors.Start(name);
+            //sensors.Start(name);//keep
             
 
         }
@@ -350,6 +352,14 @@ namespace PathMet_V2
                     //map assignment
                     MyMapView.Map = currentMap;
 
+                    //print available map layers to console
+
+                    Console.WriteLine("printing layer names");
+                    foreach (var layer in MyMapView.Map.AllLayers)
+                    {
+                        Console.WriteLine("Layer Name:" + layer.Name);
+                    }
+
                     DataContext = MyMapView.SketchEditor;
 
                     //extent settings for navigation mode
@@ -435,7 +445,9 @@ namespace PathMet_V2
             // Project the point to whatever spatial reference you want
             MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(tappedPoint, SpatialReferences.WebMercator);
 
+
             //TODO add logic to snap to path geometry
+            //MapPoint snappedPoint = await MyMapView.IdentifyLayersAsync(projectedPoint,2.0,)
 
             //add tapped point through polyline builder and update graphics
             startPointOverlay.Graphics.Clear();
@@ -452,7 +464,12 @@ namespace PathMet_V2
             startPoint = projectedPoint;
 
             Console.WriteLine("StartPt chosen, start should be available.");
-            UpdateSensors();
+
+            //for debugging
+            UpdateSensors(); //keep
+           
+
+
         }
 
         private async void WaitForEndPt()
