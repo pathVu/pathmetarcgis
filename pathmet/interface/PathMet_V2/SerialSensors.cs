@@ -123,7 +123,7 @@ namespace PathMet_V2
         {
 
             //For debugging -----------
-            Connected = true; //delete
+            //Connected = true; //delete
             //-----------
 
             encoder.CallbackDistance = 120.0; // inches
@@ -158,11 +158,11 @@ namespace PathMet_V2
                 thread = new Thread(Run);
                 thread.Start();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 //For debugging -----------
-                //Connected = false; //keep
-
+                Connected = false; //keep
+                System.Windows.MessageBox.Show("sensors not connected. Details: \n" + e.Message);
             }
         }
 

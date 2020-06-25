@@ -27,7 +27,7 @@
         <!-- Drawing edit and restart buttons-->
         <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
             <Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="14" />
-            <Button Content="Undo" x:Name="undoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding UndoCommand}" />
+            <Button Content="Undo" x:Name="undoBtn" Margin="5" Padding="5" FontSize="14" Click="UndoLastVertex" />
             <Button Content="Redo" x:Name="redoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding RedoCommand}"/>
             <Button Content="Done" x:Name="doneBtn" Margin="5" Padding="5"  FontSize="14" Command="{Binding CompleteCommand}" Click="doneDrawingLine_Click"/>
         </StackPanel>
@@ -42,7 +42,7 @@
                 <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="InitializeMap">
                     <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
                 </ComboBox>
-                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" />
+                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" Click="ShowSensorStatus" />
             </Grid>
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Welcome to PathMet</TextBlock>
             <Grid Margin="10 10">

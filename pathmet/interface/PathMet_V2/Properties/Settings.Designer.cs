@@ -52,7 +52,7 @@ namespace PathMet_V2.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\PathMet")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\PathMet_V2")]
         public string LogPath {
             get {
                 return ((string)(this["LogPath"]));

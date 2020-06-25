@@ -36,6 +36,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using Esri.ArcGISRuntime;
 
 namespace PathMet_V2
 {
@@ -52,10 +53,57 @@ namespace PathMet_V2
 
             InitializeUI();
 
-            //InitializeMap();
-
             InitializeAuthentication();
 
+        }
+
+        private void OnMapLoadStatusChanged(object sender, LoadStatusEventArgs e)
+        {
+            
+
+            Console.WriteLine("Load Status Change Detected");
+            switch (e.Status)
+            {
+                case LoadStatus.Loaded:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        StatusTxt.Text = "Map Loaded!";
+                    });
+                    this.Dispatcher.Invoke(() =>
+                        {
+                            System.Windows.MessageBox.Show("Init PathMet called.");
+                            InitializePathMet();
+                        });
+ 
+                    break;
+
+                case LoadStatus.FailedToLoad:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        StatusTxt.Text = "Map Failed to Load";
+                    });
+                    UserMapsBox.SelectedIndex = 0;
+                    break;
+
+                case LoadStatus.Loading:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        StatusTxt.Text = "Map Loading...";
+                    });
+                    break;
+
+                default:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        StatusTxt.Text = "Choose a Map";
+                    });
+                    break;
+            }
+        }
+
+        private void InitializePathMet()
+        {
+            
             sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
             sensors.UpdateEvent += OnUpdate;
             UpdateSensors();
@@ -69,6 +117,12 @@ namespace PathMet_V2
             {
                 this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
             };
+            
+        }
+
+        private void Map_LoadStatusChanged(object sender, LoadStatusEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         void Window_Closing(object sender, CancelEventArgs e)
@@ -216,11 +270,11 @@ namespace PathMet_V2
             //disable everything; the sensor will enable it when ready
 
             //for testing onStop functionality, should be uncommented
-            /*txtFName.IsEnabled = false;
+            txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
-            */ //keep
-            OnStop(sender, e);//delete
+             //keep
+            //OnStop(sender, e);//delete
             
             
 
@@ -230,7 +284,7 @@ namespace PathMet_V2
                 name = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
             }
 
-            //sensors.Start(name);//keep
+            sensors.Start(name);//keep
             
 
         }
@@ -290,7 +344,7 @@ namespace PathMet_V2
         #region map_functions
 
         private bool startPtChosen = false;
-        private Geometry currentRunGeom = null;
+        private Polyline currentRunGeom = null;
         private MapPoint startPoint = null;
         private double lastRunDist;
         PolylineBuilder polyLineBuilder;
@@ -300,8 +354,9 @@ namespace PathMet_V2
         GraphicsOverlay endPointOverlay;
         double RunDistTolerance = 20.0;
 
-
-        private void InitializeMap()
+        
+        
+        private async void InitializeMap(object sender, SelectionChangedEventArgs e)
         {
             Console.WriteLine("Initializing Map");
             
@@ -309,17 +364,17 @@ namespace PathMet_V2
             if (UserMapsBox.SelectedIndex == 0)
             {
                 MyMapView.Map = new Map();
-                UpdateUI_WaitForLogin();
+                //UpdateUI_WaitForLogin();
             }
             else
             {
                 try
                 {
                     var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
-                    Console.WriteLine(mapId);
-                    var webMapUrl = string.Format("https://www.arcgisonline.com/sharing/rest/content/items/{0}/data", mapId);
-                    Map currentMap = new Map(new Uri(webMapUrl));
 
+                    //get map by portal
+                    var portalItem = await PortalItem.CreateAsync(portal, mapId);
+                    Map currentMap = new Map(portalItem);
                     //drawing initialization
 
                     // Add a graphics overlay for showing the run line. 
@@ -349,23 +404,17 @@ namespace PathMet_V2
                     //create polyline builder
                     //polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
 
+                    currentMap.LoadStatusChanged += OnMapLoadStatusChanged;
+
                     //map assignment
                     MyMapView.Map = currentMap;
 
-                    //print available map layers to console
-
-                    Console.WriteLine("printing layer names");
-                    foreach (var layer in MyMapView.Map.AllLayers)
-                    {
-                        Console.WriteLine("Layer Name:" + layer.Name);
-                    }
-
-                    DataContext = MyMapView.SketchEditor;
 
                     //extent settings for navigation mode
                     MyMapView.LocationDisplay.IsEnabled = true;
 
                     MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.CompassNavigation;
+
                 }
                 catch
                 {
@@ -436,83 +485,311 @@ namespace PathMet_V2
             UpdateUI_waitForStartPt();
         }
 
-        private void StartPt_Tapped(object sender, GeoViewInputEventArgs e)
+        private async void StartPt_Tapped(object sender, GeoViewInputEventArgs e)
         {
-            // Get the tapped point - this is in the map's spatial reference,
-            // which in this case is WebMercator because that is the SR used by the included basemaps.
+            DataContext = MyMapView.SketchEditor;
+
             MapPoint tappedPoint = e.Location;
 
-            // Project the point to whatever spatial reference you want
-            MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(tappedPoint, SpatialReferences.WebMercator);
+            //------------------------------------------
+            //FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers[0] as FeatureLayer;
+            //FeatureQueryResult SelectionResult;
+            //MapPoint snappedPoint = tappedPoint;
+            //try
+            //{
+            //    // this is essentially the range of snapping to any path
+            //    double tolerance = 15;
 
+            //    //If the distance to nearest vertex is less than this value, snap to the nearest vertex. Higher values snap to the vertex from farther away.
+            //    //It does not have a unit, since it is relative to the current MapScale
+            //    //.05 will snap to a vertex if you click within 1/20th of the scale of the screen
+            //    double vertexSnapDistance = .01;
 
-            //TODO add logic to snap to path geometry
-            //MapPoint snappedPoint = await MyMapView.IdentifyLayersAsync(projectedPoint,2.0,)
+            //    // Convert the tolerance to map units.
+            //    double mapTolerance = tolerance * MyMapView.UnitsPerPixel;
 
-            //add tapped point through polyline builder and update graphics
-            startPointOverlay.Graphics.Clear();
+            //    // Normalize the geometry if wrap-around is enabled.
+            //    //    This is necessary because of how wrapped-around map coordinates are handled by Runtime.
+            //    //    Without this step, querying may fail because wrapped-around coordinates are out of bounds.
+            //    if (MyMapView.IsWrapAroundEnabled)
+            //    {
+            //        tappedPoint = (MapPoint)GeometryEngine.NormalizeCentralMeridian(tappedPoint);
+            //    }
 
-            polyLineBuilder = new PolylineBuilder(SpatialReferences.WebMercator);
-            polyLineBuilder.AddPoint(projectedPoint);
+            //    // Define the envelope around the tap location for selecting features.
+            //    Envelope selectionEnvelope = new Envelope(tappedPoint.X - mapTolerance, tappedPoint.Y - mapTolerance, tappedPoint.X + mapTolerance,
+            //        tappedPoint.Y + mapTolerance, MyMapView.Map.SpatialReference);
 
-            startPointOverlay.Graphics.Add(new Graphic(projectedPoint));
-            //runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
+            //    // Define the query parameters for selecting features.
+            //    QueryParameters queryParams = new QueryParameters
+            //    {
+            //        // Set the geometry to selection envelope for selection by geometry.
+            //        Geometry = selectionEnvelope
+            //    };
 
-            currentRunGeom = polyLineBuilder.ToGeometry();
+            //    // Select the features based on query parameters defined above.
+            //    //await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
+            //    //SelectionResult = _featureLayer.GetSelectedFeaturesAsync().Result;
 
-            startPtChosen = true;
-            startPoint = projectedPoint;
+            //    SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
+            //    _featureLayer.ClearSelection();
 
-            Console.WriteLine("StartPt chosen, start should be available.");
+            //    //get closest coordinate 
+            //    ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, tappedPoint);
 
-            //for debugging
-            UpdateSensors(); //keep
-           
+            //    //get closest coordinate 
+            //    ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, tappedPoint);
 
+            //    //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
 
+            //    if(nearestVert.Distance  > MyMapView.MapScale * vertexSnapDistance)
+            //    {
+            //        snappedPoint = nearestCoord.Coordinate;
+            //        Console.Write("MapScale: " + MyMapView.MapScale);
+            //    }
+            //    else
+            //    {
+            //        snappedPoint = nearestVert.Coordinate;
+            //    }
+
+            //    // Project the snapped point to whatever spatial reference you want
+            //    MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
+
+            //    //add tapped point through polyline builder and update graphics
+            //    startPointOverlay.Graphics.Clear();
+
+            //    polyLineBuilder = new PolylineBuilder(SpatialReferences.WebMercator);
+            //    polyLineBuilder.AddPoint(projectedPoint);
+
+            //    startPointOverlay.Graphics.Add(new Graphic(projectedPoint));
+            //    //runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
+
+            //    currentRunGeom = polyLineBuilder.ToGeometry();
+
+            //    startPtChosen = true;
+            //    startPoint = projectedPoint;
+
+            //    Console.WriteLine("StartPt chosen, start should be available.");
+
+            //    //for debugging
+            //    UpdateSensors(); //keep
+
+            //}
+            //catch (Exception ex)
+            //{
+
+            //}
+
+            //------------------------------------------
+            //try to snap the line
+            MapPoint snappedPoint = await SnapToLine(tappedPoint);
+
+            if (!Geometry.IsNullOrEmpty(snappedPoint)) { 
+                // Project the snapped point to whatever spatial reference you want
+                MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
+
+                //add tapped point through polyline builder and update graphics
+                startPointOverlay.Graphics.Clear();
+
+                polyLineBuilder = new PolylineBuilder(SpatialReferences.WebMercator);
+                polyLineBuilder.AddPoint(projectedPoint);
+
+                startPointOverlay.Graphics.Add(new Graphic(projectedPoint));
+                //runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
+
+                currentRunGeom = polyLineBuilder.ToGeometry() as Polyline;
+
+                startPtChosen = true;
+                startPoint = projectedPoint;
+
+                Console.WriteLine("StartPt chosen, start should be available.");
+
+                //for debugging
+                UpdateSensors(); //keep
+            }
+            else
+            {
+                Console.WriteLine("Could not snap to any line.");
+            }
         }
 
-        private async void WaitForEndPt()
-        { 
+        //snap the inpu MapPoint to the first operational layer's line. If no line found, this method will return null.
+        private async Task<MapPoint> SnapToLine(MapPoint inputPt)
+        {
+
+            FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers[0] as FeatureLayer;
+
+            FeatureQueryResult SelectionResult;
+            MapPoint snappedPoint = inputPt;
+            Boolean inputSnapped = false;
+
+            try
+            {
+                // this is essentially the range of snapping to any path
+                double tolerance = 15;
+
+                //If the distance to nearest vertex is less than this value, snap to the nearest vertex. Higher values snap to the vertex from farther away.
+                //It does not have a unit, since it is relative to the current MapScale
+                //.05 will snap to a vertex if you click within 1/20th of the scale of the screen
+                double vertexSnapDistance = .01;
+
+                // Convert the tolerance to map units.
+                double mapTolerance = tolerance * MyMapView.UnitsPerPixel;
+
+                // Normalize the geometry if wrap-around is enabled.
+                //    This is necessary because of how wrapped-around map coordinates are handled by Runtime.
+                //    Without this step, querying may fail because wrapped-around coordinates are out of bounds.
+                if (MyMapView.IsWrapAroundEnabled)
+                {
+                    inputPt = (MapPoint)GeometryEngine.NormalizeCentralMeridian(inputPt);
+                }
+
+                // Define the envelope around the tap location for selecting features.
+                Envelope selectionEnvelope = new Envelope(inputPt.X - mapTolerance, inputPt.Y - mapTolerance, inputPt.X + mapTolerance,
+                    inputPt.Y + mapTolerance, MyMapView.Map.SpatialReference);
+
+                // Define the query parameters for selecting features.
+                QueryParameters queryParams = new QueryParameters
+                {
+                    // Set the geometry to selection envelope for selection by geometry.
+                    Geometry = selectionEnvelope
+                };
+
+                // Select the features based on query parameters defined above.
+                //await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
+                //SelectionResult = _featureLayer.GetSelectedFeaturesAsync().Result;
+
+                SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
+                _featureLayer.ClearSelection();
+
+                //get closest coordinate 
+                ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                //get closest coordinate 
+                ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
+
+                if (nearestVert.Distance > MyMapView.MapScale * vertexSnapDistance)
+                {
+                    snappedPoint = nearestCoord.Coordinate;
+                    inputSnapped = true;
+                }
+                else
+                {
+                    snappedPoint = nearestVert.Coordinate;
+                    inputSnapped = true;
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            if (inputSnapped)
+            {
+                return snappedPoint;
+            }
+            else
+            {
+                return null;
+            }
+
+            //------------------------------------------
+        }
+
+        //wait for endPt that used the sketch editor
+        //private async void WaitForEndPt()
+        //{ 
+        //    //show length of past run
+        //    PastRunDistContainer.Visibility = Visibility.Visible;
+        //    pathDrawingControls.Visibility = Visibility.Visible;
+        //    lastRunDist = GetLastRunDist();
+        //    pastRunDistTxt.Text = lastRunDist.ToString() + "m";
+
+        //    MyMapView.SketchEditor.GeometryChanged += showLineDataDuringPathDrawing;
+
+        //    UpdateUI_waitForEndPt();
+
+        //    try
+        //    {
+        //        //MyMapView.SketchEditor.GeometryChanged +=
+        //        // Let the user edit the current geometry 
+        //        //MyMapView.SketchEditor.
+        //        Geometry geometry = await MyMapView.SketchEditor.StartAsync(currentRunGeom, SketchCreationMode.Polyline);
+
+        //        // Create and add a graphic from the geometry the user drew
+        //        runsLineOverlay.Graphics.Add(new Graphic(geometry));
+        //    }
+        //    catch (TaskCanceledException)
+        //    {
+        //        // Ignore ... let the user cancel drawing
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Report exceptions
+        //        System.Windows.MessageBox.Show("Error drawing graphic shape: " + ex.Message);
+        //    }
+
+        //    //get and show the past run's distance to compare our drawing with
+        //}
+
+        private void WaitForEndPt()
+        {
+            MyMapView.GeoViewTapped += EndPt_Tapped;
+
+
             //show length of past run
             PastRunDistContainer.Visibility = Visibility.Visible;
             pathDrawingControls.Visibility = Visibility.Visible;
             lastRunDist = GetLastRunDist();
             pastRunDistTxt.Text = lastRunDist.ToString() + "m";
 
-            MyMapView.SketchEditor.GeometryChanged += showLineDataDuringPathDrawing;
-
             UpdateUI_waitForEndPt();
-
-            try
-            {
-                // Let the user edit the current geometry 
-                Geometry geometry = await MyMapView.SketchEditor.StartAsync(currentRunGeom, SketchCreationMode.Polyline);
-                
-
-                // Create and add a graphic from the geometry the user drew
-                runsLineOverlay.Graphics.Add(new Graphic(geometry));
-            }
-            catch (TaskCanceledException)
-            {
-                // Ignore ... let the user cancel drawing
-            }
-            catch (Exception ex)
-            {
-                // Report exceptions
-                System.Windows.MessageBox.Show("Error drawing graphic shape: " + ex.Message);
-            }
-
-            //get and show the past run's distance to compare our drawing with
         }
 
-        private void showLineDataDuringPathDrawing(object sender, GeometryChangedEventArgs e)
-        {
-            
-            double geomLength = GeometryEngine.LengthGeodetic(MyMapView.SketchEditor.Geometry, LinearUnits.Meters, GeodeticCurveType.Geodesic);
-            double lineLength = Math.Round(geomLength, 1);
+        private void UndoLastVertex(object sender, RoutedEventArgs e) {
+            if (polyLineBuilder.Parts[0].PointCount > 1)
+            {
+                polyLineBuilder.Parts[0].RemovePoint(polyLineBuilder.Parts[0].PointCount - 1);
+                currentRunGeom = polyLineBuilder.ToGeometry() as Polyline;
+                UpdateRunGraphicAndLength();
+            }
+        }
 
-            System.Windows.Media.Color bkgdColor;
+        private void UpdateRunGraphicAndLength()
+        {
+            //clear the end point overlay
+            endPointOverlay.Graphics.Clear();
+
+            //clear runslineoverlay
+            runsLineOverlay.Graphics.Clear();
+
+            //clear runspoint overlay
+            runsPointOverlay.Graphics.Clear();
+
+            //redraw the overlays
+
+            var part = polyLineBuilder.Parts[0];
+
+            int ptCount = part.PointCount;
+
+            //put all points except for 0 and last in the runspoint overlay
+            for (int i = 1; i < ptCount - 1 ; i++)
+            {
+                runsPointOverlay.Graphics.Add(new Graphic(part.GetPoint(i)));
+            }
+
+            //put the builder.geom as the runsline overlay
+            runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
+
+            //put the last point in the end point overlay
+            endPointOverlay.Graphics.Add(new Graphic(part.GetPoint(ptCount-1)));
+
+
+            //update line drawn length
+            double lineLength = Math.Round(GeometryEngine.LengthGeodetic(polyLineBuilder.ToGeometry(), LinearUnits.Meters, GeodeticCurveType.Geodesic), 1);
 
             if (Math.Abs(lineLength - GetLastRunDist()) <= RunDistTolerance)
             {
@@ -526,7 +803,36 @@ namespace PathMet_V2
                 StatusTxt.Text = "Drawn length: " + lineLength + " does not match last run data.";
                 StatusTxt.Background = System.Windows.Media.Brushes.Red;
             }
-            
+        }
+
+
+        private async void EndPt_Tapped(object sender, GeoViewInputEventArgs e)
+        {
+            // Get the tapped point - this is in the map's spatial reference,
+            // which in this case is WebMercator because that is the SR used by the included basemaps.
+            MapPoint tappedPoint = e.Location;
+            MapPoint snappedPoint = await SnapToLine(tappedPoint);
+
+            if (!Geometry.IsNullOrEmpty(snappedPoint))
+            {
+
+                MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
+
+                //clear old endpoint and line
+                endPointOverlay.Graphics.Clear();
+                runsLineOverlay.Graphics.Clear();
+
+                polyLineBuilder.AddPoint(projectedPoint);
+                currentRunGeom = polyLineBuilder.ToGeometry() as Polyline;
+
+                UpdateRunGraphicAndLength();
+
+            }
+            else
+            {
+                Console.WriteLine("Could not snap to any line.");
+            }
+
         }
 
         private void doneDrawingLine_Click(object sender, RoutedEventArgs e)
@@ -751,6 +1057,8 @@ namespace PathMet_V2
                         availableMap.Tag = map.ItemId;
                         UserMapsBox.Items.Add(availableMap);
                     }
+
+                    StatusTxt.Text = "Logged In Successfully. Choose a Map.";
                 }
                 else
                 {
@@ -875,9 +1183,9 @@ namespace PathMet_V2
 
         #endregion
 
-        private void InitializeMap(object sender, SelectionChangedEventArgs e)
+        private void ShowSensorStatus(object sender, RoutedEventArgs e)
         {
-            InitializeMap();
+            
         }
     }
 

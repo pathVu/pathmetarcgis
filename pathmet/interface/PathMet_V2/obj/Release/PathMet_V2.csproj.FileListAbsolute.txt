@@ -945,4 +945,3 @@ R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\ob
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csproj.CopyComplete
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.exe
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.pdb
-R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache
