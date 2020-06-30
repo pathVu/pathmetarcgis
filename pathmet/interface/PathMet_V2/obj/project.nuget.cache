@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "E+vzVTwZI49xr55rLFSnuWwgdpbG+geHM2mFqqoja/oVYedeGy3bQV1UewTT6Ayxv0yBqa6+H55sOTCX47ZmhQ==",
+  "dgSpecHash": "PTWKvm2ODrctYloMvYH/ZW05+W+MV4UTUscSiaYxXSlcKPYfyimBYfrX7njD2A/NDjFJwtUOEDv+YWwwP/lNwg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+  "projectFilePath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Xboxr\\.nuget\\packages\\esri.arcgisruntime\\100.8.0\\esri.arcgisruntime.100.8.0.nupkg.sha512",
-    "C:\\Users\\Xboxr\\.nuget\\packages\\esri.arcgisruntime.wpf\\100.8.0\\esri.arcgisruntime.wpf.100.8.0.nupkg.sha512",
-    "C:\\Users\\Xboxr\\.nuget\\packages\\opencvsharp3-anycpu\\4.0.0.20181129\\opencvsharp3-anycpu.4.0.0.20181129.nupkg.sha512"
+    "C:\\Users\\Charles\\.nuget\\packages\\esri.arcgisruntime\\100.8.0\\esri.arcgisruntime.100.8.0.nupkg.sha512",
+    "C:\\Users\\Charles\\.nuget\\packages\\esri.arcgisruntime.wpf\\100.8.0\\esri.arcgisruntime.wpf.100.8.0.nupkg.sha512",
+    "C:\\Users\\Charles\\.nuget\\packages\\opencvsharp3-anycpu\\4.0.0.20181129\\opencvsharp3-anycpu.4.0.0.20181129.nupkg.sha512"
   ],
   "logs": []
 }

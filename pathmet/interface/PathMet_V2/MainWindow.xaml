@@ -39,10 +39,10 @@
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="InitializeMap">
+                <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="MapChosen">
                     <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
                 </ComboBox>
-                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" />
+                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" Click="loginBtn_Click" />
             </Grid>
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Welcome to PathMet</TextBlock>
             <Grid Margin="10 10">

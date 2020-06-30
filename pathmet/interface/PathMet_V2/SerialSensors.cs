@@ -127,11 +127,7 @@ namespace PathMet_V2
         public event SummaryHandler SummaryEvent;
         
         public SerialSensors(string port)
-        {
-
-            //For debugging -----------
-            //Connected = true; //delete
-            //-----------
+        { 
 
             encoder.CallbackDistance = 120.0; // inches
             encoder.Callback += CaptureImage;
@@ -167,9 +163,7 @@ namespace PathMet_V2
             }
             catch (Exception e)
             {
-                //For debugging -----------
-                Connected = false; //keep
-                System.Windows.MessageBox.Show("sensors not connected. Details: \n" + e.Message);
+                Connected = false; 
             }
         }
 

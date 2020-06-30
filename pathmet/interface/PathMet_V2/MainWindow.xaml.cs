@@ -16,26 +16,13 @@ using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI.Controls;
 using Color = System.Drawing.Color;
 using Esri.ArcGISRuntime.Data;
-using Esri.ArcGISRuntime.Geometry;
-using Esri.ArcGISRuntime.Mapping;
-using Esri.ArcGISRuntime.Symbology;
-using Esri.ArcGISRuntime.UI;
-using System;
 using System.Linq;
 using System.Drawing;
 using Point = System.Windows.Point;
 using System.Data.SqlTypes;
 using System.Windows.Input;
-using Esri.ArcGISRuntime.Mapping;
-using Esri.ArcGISRuntime.Portal;
-using Esri.ArcGISRuntime.Security;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
-using System.Windows.Threading;
 using Esri.ArcGISRuntime;
 using Image = System.Windows.Controls.Image;
 using System.IO;
@@ -56,8 +43,17 @@ namespace PathMet_V2
 
             InitializeUI();
 
-            InitializeAuthentication();
+            connectAndGetMaps();
 
+            //at this point, we've tried to automatically sign in the user.
+            //from here, the user will have to hit "Login" if some part of the process didn't work.
+        }
+
+        private async void connectAndGetMaps()
+        {
+            await AuthenticateWithPortal();
+
+            GetWebMaps(portal);
         }
 
         private void OnMapLoadStatusChanged(object sender, LoadStatusEventArgs e)
@@ -74,7 +70,6 @@ namespace PathMet_V2
                     });
                     this.Dispatcher.Invoke(() =>
                         {
-                            System.Windows.MessageBox.Show("Init PathMet called.");
                             InitializePathMet();
                         });
  
@@ -106,10 +101,14 @@ namespace PathMet_V2
 
         private void InitializePathMet()
         {
+            if(MyMapView.Map.LoadStatus != LoadStatus.Loaded)
+            {
+
+                return;
+            }
             
             sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
             sensors.UpdateEvent += OnUpdate;
-            UpdateSensors();
 
             sensors.ExistsEvent += () =>
             {
@@ -121,7 +120,15 @@ namespace PathMet_V2
                 this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
             };
 
+            UpdateSensors();
 
+            //we only call initialize pathMet if the map is loaded successfully, so if connection is established here, we can move into waitForStart
+            //pathMetConnectionEstablished
+            if (sensors.Connected)
+            {
+                WaitForStartPt();
+                UpdateUI_PathMetConnected();
+            }
         }
 
         private void Map_LoadStatusChanged(object sender, LoadStatusEventArgs e)
@@ -153,30 +160,20 @@ namespace PathMet_V2
         }
 
         private bool inPostRun = false;
+        private bool runInProgress = false;
 
         #region pathMet_functions
         private void UpdateSensors()
         {
             if (sensors.Connected)
             {
-                UpdateUI_PathMetConnected();
 
                 if (sensors.Sampling)
                 {
-                    UpdateUI_RunInProgress();
-                }
-                else
-                {
-                    if (!inPostRun)
+                    if (!runInProgress)
                     {
-                        if (startPtChosen)
-                        {
-                            UpdateUI_ReadyToRun();
-                        }
-                        else
-                        {
-                            WaitForStartPt();
-                        }
+                        UpdateUI_RunInProgress();
+                        runInProgress = true;
                     }
                 }
 
@@ -280,6 +277,7 @@ namespace PathMet_V2
 
             MyMapView.GeoViewTapped -= StartPt_Tapped;
             UpdateUI_RunInProgress();
+            runInProgress = true;
 
             //disable everything; the sensor will enable it when ready
 
@@ -343,7 +341,7 @@ namespace PathMet_V2
             endPointOverlay.Graphics.Clear();
 
             //be ready to pick a new starting point
-            UpdateUI_waitForStartPt();
+            WaitForStartPt();
         }
 
         private void onDiscard(object sender, EventArgs e)
@@ -413,76 +411,78 @@ namespace PathMet_V2
         GraphicsOverlay endPointOverlay;
         double RunDistTolerance = 50.0;
 
-        
-        
-        private async void InitializeMap(object sender, SelectionChangedEventArgs e)
+
+        private async void MapChosen(object sender, SelectionChangedEventArgs e)
         {
-            Console.WriteLine("Initializing Map");
-            
             //if user has a map selected, load that map
             if (UserMapsBox.SelectedIndex == 0)
             {
                 MyMapView.Map = new Map();
-                //UpdateUI_WaitForLogin();
             }
             else
             {
-                try
-                {
-                    var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
-
-                    //get map by portal
-                    var portalItem = await PortalItem.CreateAsync(portal, mapId);
-                    Map currentMap = new Map(portalItem);
-                    //drawing initialization
-
-                    // Add a graphics overlay for showing the run line. 
-                    runsLineOverlay = new GraphicsOverlay();
-                    SimpleLineSymbol runLineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.Aqua, 5);
-                    runsLineOverlay.Renderer = new SimpleRenderer(runLineSymbol);
-                    MyMapView.GraphicsOverlays.Add(runsLineOverlay);
-
-                    // Add a graphics overlay for showing the run points.
-                    runsPointOverlay = new GraphicsOverlay();
-                    SimpleMarkerSymbol runMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 10);
-                    runsPointOverlay.Renderer = new SimpleRenderer(runMarkerSymbol);
-                    MyMapView.GraphicsOverlays.Add(runsPointOverlay);
-
-                    // Add a graphics overlay for showing the startPt.
-                    startPointOverlay = new GraphicsOverlay();
-                    SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.LightGreen, 10);
-                    startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
-                    MyMapView.GraphicsOverlays.Add(startPointOverlay);
-
-                    // Add a graphics overlay for showing the endPt.
-                    endPointOverlay = new GraphicsOverlay();
-                    SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.DarkRed, 10);
-                    endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
-                    MyMapView.GraphicsOverlays.Add(endPointOverlay);
-
-                    //create polyline builder
-                    //polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
-
-                    currentMap.LoadStatusChanged += OnMapLoadStatusChanged;
-
-                    //map assignment
-                    MyMapView.Map = currentMap;
-
-
-                    //extent settings for navigation mode
-                    MyMapView.LocationDisplay.IsEnabled = true;
-
-                    MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.CompassNavigation;
-
-                }
-                catch
-                {
-                    throw;
-                }
-                
+                var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
+                InitializeMap(mapId);
             }
         }
+        
+        
+        private async void InitializeMap(String mapId)
+        {
+            Console.WriteLine("Initializing Map");
+            try
+            {
 
+                //get map by portal
+                var portalItem = await PortalItem.CreateAsync(portal, mapId);
+                Map currentMap = new Map(portalItem);
+                //drawing initialization
+
+                // Add a graphics overlay for showing the run line. 
+                runsLineOverlay = new GraphicsOverlay();
+                SimpleLineSymbol runLineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.Aqua, 5);
+                runsLineOverlay.Renderer = new SimpleRenderer(runLineSymbol);
+                MyMapView.GraphicsOverlays.Add(runsLineOverlay);
+
+                // Add a graphics overlay for showing the run points.
+                runsPointOverlay = new GraphicsOverlay();
+                SimpleMarkerSymbol runMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 10);
+                runsPointOverlay.Renderer = new SimpleRenderer(runMarkerSymbol);
+                MyMapView.GraphicsOverlays.Add(runsPointOverlay);
+
+                // Add a graphics overlay for showing the startPt.
+                startPointOverlay = new GraphicsOverlay();
+                SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.LightGreen, 10);
+                startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
+                MyMapView.GraphicsOverlays.Add(startPointOverlay);
+
+                // Add a graphics overlay for showing the endPt.
+                endPointOverlay = new GraphicsOverlay();
+                SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.DarkRed, 10);
+                endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
+                MyMapView.GraphicsOverlays.Add(endPointOverlay);
+
+                //create polyline builder
+                //polyLineBuilder = new PolylineBuilder(SpatialReferences.Wgs84);
+
+                currentMap.LoadStatusChanged += OnMapLoadStatusChanged;
+
+                //map assignment
+                MyMapView.Map = currentMap;
+
+
+                //extent settings for navigation mode
+                MyMapView.LocationDisplay.IsEnabled = true;
+
+                MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.CompassNavigation;
+
+            }
+            catch
+            {
+                throw;
+            }
+                
+        }
         
         private async Task<Graphic> ChooseGraphicAsync()
         {
@@ -538,7 +538,20 @@ namespace PathMet_V2
         //procedure sets up the UI for choosing a starting point
         private void WaitForStartPt()
         { 
-            
+            if(!sensors.Connected) 
+            {
+                System.Windows.MessageBox.Show("Lost pathMet connection");
+                InitializePathMet();
+                return;
+            }
+
+            if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
+            {
+                System.Windows.MessageBox.Show("Map not loaded");
+                UpdateUI_waitForLogin();
+                return;
+            }
+
             startPtChosen = false;
             MyMapView.GeoViewTapped += StartPt_Tapped;
             UpdateUI_waitForStartPt();
@@ -550,96 +563,6 @@ namespace PathMet_V2
 
             MapPoint tappedPoint = e.Location;
 
-            //------------------------------------------
-            //FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers[0] as FeatureLayer;
-            //FeatureQueryResult SelectionResult;
-            //MapPoint snappedPoint = tappedPoint;
-            //try
-            //{
-            //    // this is essentially the range of snapping to any path
-            //    double tolerance = 15;
-
-            //    //If the distance to nearest vertex is less than this value, snap to the nearest vertex. Higher values snap to the vertex from farther away.
-            //    //It does not have a unit, since it is relative to the current MapScale
-            //    //.05 will snap to a vertex if you click within 1/20th of the scale of the screen
-            //    double vertexSnapDistance = .01;
-
-            //    // Convert the tolerance to map units.
-            //    double mapTolerance = tolerance * MyMapView.UnitsPerPixel;
-
-            //    // Normalize the geometry if wrap-around is enabled.
-            //    //    This is necessary because of how wrapped-around map coordinates are handled by Runtime.
-            //    //    Without this step, querying may fail because wrapped-around coordinates are out of bounds.
-            //    if (MyMapView.IsWrapAroundEnabled)
-            //    {
-            //        tappedPoint = (MapPoint)GeometryEngine.NormalizeCentralMeridian(tappedPoint);
-            //    }
-
-            //    // Define the envelope around the tap location for selecting features.
-            //    Envelope selectionEnvelope = new Envelope(tappedPoint.X - mapTolerance, tappedPoint.Y - mapTolerance, tappedPoint.X + mapTolerance,
-            //        tappedPoint.Y + mapTolerance, MyMapView.Map.SpatialReference);
-
-            //    // Define the query parameters for selecting features.
-            //    QueryParameters queryParams = new QueryParameters
-            //    {
-            //        // Set the geometry to selection envelope for selection by geometry.
-            //        Geometry = selectionEnvelope
-            //    };
-
-            //    // Select the features based on query parameters defined above.
-            //    //await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
-            //    //SelectionResult = _featureLayer.GetSelectedFeaturesAsync().Result;
-
-            //    SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
-            //    _featureLayer.ClearSelection();
-
-            //    //get closest coordinate 
-            //    ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, tappedPoint);
-
-            //    //get closest coordinate 
-            //    ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, tappedPoint);
-
-            //    //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
-
-            //    if(nearestVert.Distance  > MyMapView.MapScale * vertexSnapDistance)
-            //    {
-            //        snappedPoint = nearestCoord.Coordinate;
-            //        Console.Write("MapScale: " + MyMapView.MapScale);
-            //    }
-            //    else
-            //    {
-            //        snappedPoint = nearestVert.Coordinate;
-            //    }
-
-            //    // Project the snapped point to whatever spatial reference you want
-            //    MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
-
-            //    //add tapped point through polyline builder and update graphics
-            //    startPointOverlay.Graphics.Clear();
-
-            //    polyLineBuilder = new PolylineBuilder(SpatialReferences.WebMercator);
-            //    polyLineBuilder.AddPoint(projectedPoint);
-
-            //    startPointOverlay.Graphics.Add(new Graphic(projectedPoint));
-            //    //runsLineOverlay.Graphics.Add(new Graphic(polyLineBuilder.ToGeometry()));
-
-            //    currentRunGeom = polyLineBuilder.ToGeometry();
-
-            //    startPtChosen = true;
-            //    startPoint = projectedPoint;
-
-            //    Console.WriteLine("StartPt chosen, start should be available.");
-
-            //    //for debugging
-            //    UpdateSensors(); //keep
-
-            //}
-            //catch (Exception ex)
-            //{
-
-            //}
-
-            //------------------------------------------
             //try to snap the line
             MapPoint snappedPoint = await SnapToLine(tappedPoint);
 
@@ -660,11 +583,12 @@ namespace PathMet_V2
 
                 startPtChosen = true;
                 startPoint = projectedPoint;
+                UpdateUI_ReadyToRun();
 
                 Console.WriteLine("StartPt chosen, start should be available.");
 
-                //for debugging
-                //UpdateSensors(); //keep
+                //TODO: I think delete
+                //UpdateSensors();
             }
             else
             {
@@ -758,42 +682,6 @@ namespace PathMet_V2
             //------------------------------------------
         }
 
-        //wait for endPt that used the sketch editor
-        //private async void WaitForEndPt()
-        //{ 
-        //    //show length of past run
-        //    PastRunDistContainer.Visibility = Visibility.Visible;
-        //    pathDrawingControls.Visibility = Visibility.Visible;
-        //    lastRunDist = GetLastRunDist();
-        //    pastRunDistTxt.Text = lastRunDist.ToString() + "m";
-
-        //    MyMapView.SketchEditor.GeometryChanged += showLineDataDuringPathDrawing;
-
-        //    UpdateUI_waitForEndPt();
-
-        //    try
-        //    {
-        //        //MyMapView.SketchEditor.GeometryChanged +=
-        //        // Let the user edit the current geometry 
-        //        //MyMapView.SketchEditor.
-        //        Geometry geometry = await MyMapView.SketchEditor.StartAsync(currentRunGeom, SketchCreationMode.Polyline);
-
-        //        // Create and add a graphic from the geometry the user drew
-        //        runsLineOverlay.Graphics.Add(new Graphic(geometry));
-        //    }
-        //    catch (TaskCanceledException)
-        //    {
-        //        // Ignore ... let the user cancel drawing
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Report exceptions
-        //        System.Windows.MessageBox.Show("Error drawing graphic shape: " + ex.Message);
-        //    }
-
-        //    //get and show the past run's distance to compare our drawing with
-        //}
-
 
         private void WaitForEndPt()
         {
@@ -803,9 +691,6 @@ namespace PathMet_V2
             //show length of past run
             PastRunDistContainer.Visibility = Visibility.Visible;
             pathDrawingControls.Visibility = Visibility.Visible;
-
-            
-            
             
             pastRunDistTxt.Text = lastRunDist.ToString() + "m";
 
@@ -919,6 +804,8 @@ namespace PathMet_V2
             chkbxPm.Background = System.Windows.Media.Brushes.Red;
             chkbxPm.IsChecked = false;
 
+            UserMapsBox.IsEnabled = false;
+
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
             btnRestart.IsEnabled = false;
@@ -944,9 +831,15 @@ namespace PathMet_V2
             chkbxE.IsChecked = false;
         }
 
-        private void UpdateUI_WaitForLogin()
+        private void UpdateUI_waitForLogin()
         {
             StatusTxt.Text = "Log In to Load a Map";
+        }
+
+        private void UpdateUI_waitForMapChosen()
+        {
+            StatusTxt.Text = "Choose a map from the dropdown";
+            UserMapsBox.IsEnabled = true;
         }
 
         private void UpdateUI_PathMetConnected()
@@ -1082,9 +975,10 @@ namespace PathMet_V2
 
         List<PortalItem> availableMaps;
 
-        private async void InitializeAuthentication()
+        //also gets webMaps
+        private async Task AuthenticateWithPortal()
         {
-            UpdateUI_WaitForLogin();
+            UpdateUI_waitForLogin();
             try
             {
                 // Set up the AuthenticationManager to use OAuth for secure ArcGIS Online requests.
@@ -1094,46 +988,11 @@ namespace PathMet_V2
 
                 // Connect to the portal (ArcGIS Online, for example).
                 portal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
-
-                //// Get a web map portal item using its ID.
-                //// If the item contains layers not shared publicly, the user will be challenged for credentials at this point.
-                //Console.WriteLine("map challenge");
-                //PortalItem portalItem = await PortalItem.CreateAsync(portal, WebMapId);
-
-                //// Create a new map with the portal item and display it in the map view.
-                //// If authentication fails, only the public layers are displayed.
-                //Map myMap = new Map(portalItem);
-                //MyMapView.Map = myMap;
-
-
-                if (portal != null)
-                {
-                    
-                    Console.WriteLine("name: " + portal.User.UserName);
-                    availableMaps =  await GetWebMaps(portal);
-                    Console.WriteLine("we got past the maps line");
-                    Console.WriteLine("mapName: " + availableMaps.ElementAt(0).Title);
-
-                    //show the retrieved maps in the dropdown box
-                    foreach (PortalItem map in availableMaps)
-                    {
-                        ComboBoxItem availableMap = new ComboBoxItem();
-                        availableMap.Content = map.Title;
-                        availableMap.Tag = map.ItemId;
-                        UserMapsBox.Items.Add(availableMap);
-                    }
-
-                    StatusTxt.Text = "Logged In Successfully. Choose a Map.";
-                }
-                else
-                {
-                    Console.WriteLine("portal was null, did not get user maps");
-                }
                 
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show(e.ToString(), "Error starting sample");
+                Console.WriteLine(e.ToString());
             }
         }
 
@@ -1205,6 +1064,7 @@ namespace PathMet_V2
 
             try
             {
+                Console.WriteLine("getCredAsync Called");
                 var crd = await AuthenticationManager.Current.GetCredentialAsync(cri, false);
 
                 AuthenticationManager.Current.AddCredential(crd);
@@ -1225,12 +1085,17 @@ namespace PathMet_V2
         }
 
 
-        private async Task<List<PortalItem>> GetWebMaps(ArcGISPortal portal)
+        private async void GetWebMaps(ArcGISPortal portal)
         {
-            
-            var groups = portal.User.Groups;
-            var usersMaps = new List<PortalItem>();
+            if (portal == null)
+            {
+                UpdateUI_waitForLogin();
+                return;
+            }
 
+            var groups = portal.User.Groups;
+
+            //get all webmaps that belong to the user this portal was created with
             foreach (PortalGroup portalGroup in groups)
             {
                 Console.WriteLine("grouptitle: " + portalGroup.Title);
@@ -1239,10 +1104,26 @@ namespace PathMet_V2
 
                 var portalItems = (await portal.FindItemsAsync(parameters)).Results;
 
-                usersMaps.AddRange(portalItems);
+                availableMaps = portalItems.ToList();
             }
 
-            return usersMaps;
+            if (availableMaps.Count > 0)
+            {
+                //show the retrieved maps in the dropdown box
+                foreach (PortalItem map in availableMaps)
+                {
+                    ComboBoxItem availableMap = new ComboBoxItem();
+                    availableMap.Content = map.Title;
+                    availableMap.Tag = map.ItemId;
+                    UserMapsBox.Items.Add(availableMap);
+                }
+                UpdateUI_waitForMapChosen();
+                
+            }
+            else
+            {
+                StatusTxt.Text = "No maps found for user. Log in to a different account or try again.";
+            }
         }
 
 
@@ -1254,6 +1135,12 @@ namespace PathMet_V2
             List<String> imgPaths = Directory.GetFiles(sensors.directory, "*.png").ToList();
             ReviewImagesWindow r = new ReviewImagesWindow(imgPaths);
             r.ShowDialog();
+        }
+
+        private async void loginBtn_Click(object sender, RoutedEventArgs e)
+        {
+            await SignOut();
+            connectAndGetMaps();
         }
     }
 
