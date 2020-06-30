@@ -37,6 +37,9 @@ using System.Windows.Controls;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using Esri.ArcGISRuntime;
+using Image = System.Windows.Controls.Image;
+using System.IO;
+using System.Windows.Documents;
 
 namespace PathMet_V2
 {
@@ -117,7 +120,8 @@ namespace PathMet_V2
             {
                 this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
             };
-            
+
+
         }
 
         private void Map_LoadStatusChanged(object sender, LoadStatusEventArgs e)
@@ -148,6 +152,8 @@ namespace PathMet_V2
             System.Windows.MessageBox.Show(String.Format("Laser: {0:0.000} in\nEncoder: {1:0.0} ft", laser, encoder / 12.0), "Summary");
         }
 
+        private bool inPostRun = false;
+
         #region pathMet_functions
         private void UpdateSensors()
         {
@@ -161,13 +167,16 @@ namespace PathMet_V2
                 }
                 else
                 {
-                    if (startPtChosen)
+                    if (!inPostRun)
                     {
-                        UpdateUI_ReadyToRun();
-                    }
-                    else
-                    {
-                        WaitForStartPt();
+                        if (startPtChosen)
+                        {
+                            UpdateUI_ReadyToRun();
+                        }
+                        else
+                        {
+                            WaitForStartPt();
+                        }
                     }
                 }
 
@@ -233,11 +242,16 @@ namespace PathMet_V2
             txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
+
+            inPostRun = true;
+
             WaitForEndPt();
-
             sensors.Stop();
+            lastRunDist = RetrieveLastRunDist();
+        }
 
-            //TODO make this only happen after run has been submitted
+        private void incrementRunName()
+        {
             // if txtFName ends with a number, increment it
             string name = txtFName.Text;
 
@@ -299,6 +313,51 @@ namespace PathMet_V2
             sensors.Restart();
         }
 
+        private void onSubmit(object sender, EventArgs e)
+        {
+            //convert current run to feature
+
+            //upload newly created feature to featuretable
+
+            incrementRunName();
+
+            resetForNewRun();
+
+        }
+
+        private void resetForNewRun()
+        {
+            //say that we're not in post run anymore
+            inPostRun = false;
+
+            //clear currentRunGeom
+            currentRunGeom = null;
+
+            //clear the last run dist
+            lastRunDist = 0.0;
+
+            //clear the graphics layers which are only used for drawing the run
+            runsLineOverlay.Graphics.Clear();
+            runsPointOverlay.Graphics.Clear();
+            startPointOverlay.Graphics.Clear();
+            endPointOverlay.Graphics.Clear();
+
+            //be ready to pick a new starting point
+            UpdateUI_waitForStartPt();
+        }
+
+        private void onDiscard(object sender, EventArgs e)
+        {
+            //delete folder that had the run in it
+
+            //dont upload to feature layer
+
+            //make folder name not increment if possible
+
+            resetForNewRun();
+        }
+
+
         private void btnTrippingHazard_Click(object sender, EventArgs e)
         {
             if (!sensors.Connected)
@@ -352,7 +411,7 @@ namespace PathMet_V2
         GraphicsOverlay runsLineOverlay;
         GraphicsOverlay startPointOverlay;
         GraphicsOverlay endPointOverlay;
-        double RunDistTolerance = 20.0;
+        double RunDistTolerance = 50.0;
 
         
         
@@ -479,7 +538,7 @@ namespace PathMet_V2
         //procedure sets up the UI for choosing a starting point
         private void WaitForStartPt()
         { 
-        
+            
             startPtChosen = false;
             MyMapView.GeoViewTapped += StartPt_Tapped;
             UpdateUI_waitForStartPt();
@@ -605,7 +664,7 @@ namespace PathMet_V2
                 Console.WriteLine("StartPt chosen, start should be available.");
 
                 //for debugging
-                UpdateSensors(); //keep
+                //UpdateSensors(); //keep
             }
             else
             {
@@ -621,7 +680,7 @@ namespace PathMet_V2
 
             FeatureQueryResult SelectionResult;
             MapPoint snappedPoint = inputPt;
-            Boolean inputSnapped = false;
+            bool inputSnapped = false;
 
             try
             {
@@ -735,6 +794,7 @@ namespace PathMet_V2
         //    //get and show the past run's distance to compare our drawing with
         //}
 
+
         private void WaitForEndPt()
         {
             MyMapView.GeoViewTapped += EndPt_Tapped;
@@ -743,7 +803,10 @@ namespace PathMet_V2
             //show length of past run
             PastRunDistContainer.Visibility = Visibility.Visible;
             pathDrawingControls.Visibility = Visibility.Visible;
-            lastRunDist = GetLastRunDist();
+
+            
+            
+            
             pastRunDistTxt.Text = lastRunDist.ToString() + "m";
 
             UpdateUI_waitForEndPt();
@@ -791,7 +854,7 @@ namespace PathMet_V2
             //update line drawn length
             double lineLength = Math.Round(GeometryEngine.LengthGeodetic(polyLineBuilder.ToGeometry(), LinearUnits.Meters, GeodeticCurveType.Geodesic), 1);
 
-            if (Math.Abs(lineLength - GetLastRunDist()) <= RunDistTolerance)
+            if (Math.Abs(lineLength - RetrieveLastRunDist()) <= RunDistTolerance)
             {
                 StatusTxt.Text = "Drawn length: " + lineLength + " matches last run data.";
                 StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
@@ -841,9 +904,11 @@ namespace PathMet_V2
             startPointOverlay.Graphics.Clear();
         }
 
-        private double GetLastRunDist()
+        private double RetrieveLastRunDist()
         {
-            return 20.0;
+            Console.WriteLine("Getting last run dist: " + sensors.EncoderFinishDist);
+            //return runDist;
+            return sensors.EncoderFinishDist;
         }
         #endregion
 
@@ -1045,7 +1110,7 @@ namespace PathMet_V2
                 {
                     
                     Console.WriteLine("name: " + portal.User.UserName);
-                    availableMaps = await GetWebMaps(portal);
+                    availableMaps =  await GetWebMaps(portal);
                     Console.WriteLine("we got past the maps line");
                     Console.WriteLine("mapName: " + availableMaps.ElementAt(0).Title);
 
@@ -1183,9 +1248,12 @@ namespace PathMet_V2
 
         #endregion
 
-        private void ShowSensorStatus(object sender, RoutedEventArgs e)
+
+        private void reviewBtn_Click(object sender, RoutedEventArgs e)
         {
-            
+            List<String> imgPaths = Directory.GetFiles(sensors.directory, "*.png").ToList();
+            ReviewImagesWindow r = new ReviewImagesWindow(imgPaths);
+            r.ShowDialog();
         }
     }
 

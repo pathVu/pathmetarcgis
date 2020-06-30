@@ -31,6 +31,9 @@ namespace PathMet_V2
         public SensorStatus LaserStatus {  get { return laserStatus; } }
         public bool Sampling { get { return sampling; } }
 
+        public string directory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public double EncoderFinishDist { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public Sensors(string hostname, int port)
         {
             this.hostname = hostname;

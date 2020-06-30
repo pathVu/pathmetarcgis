@@ -5,12 +5,16 @@ using System.IO;
 using System.IO.Ports;
 using System.Threading;
 using System.Timers;
+using System.Windows.Forms;
 
 namespace PathMet_V2
 {
     public class SerialSensors : ISensors
     {
         public bool Connected { get; set; }
+
+        public string directory { get; set; }
+        public double EncoderFinishDist { get; set; }
 
         public SensorStatus CameraStatus { get { return camera.Status; } }
         public SensorStatus EncoderStatus { get { return encoder.Status; } }
@@ -84,6 +88,9 @@ namespace PathMet_V2
         public void Stop()
         {
             sampling = false;
+
+            //added
+            EncoderFinishDist = encoder.Distance;
             
             lock (csvLock)
             {
@@ -450,7 +457,7 @@ namespace PathMet_V2
 
         private int imageCount = 0;
         private string name;
-        private string directory;
+        //private string directory;
         private Thread thread;
         private bool running = true;
         private bool sampling = false;

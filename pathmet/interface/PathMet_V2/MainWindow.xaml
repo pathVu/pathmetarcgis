@@ -42,7 +42,7 @@
                 <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="InitializeMap">
                     <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
                 </ComboBox>
-                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" Click="ShowSensorStatus" />
+                <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" />
             </Grid>
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Welcome to PathMet</TextBlock>
             <Grid Margin="10 10">
@@ -91,7 +91,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="Review Images" x:Name="reviewBtn" Grid.Column="0" Margin="0,10,10,10" Padding="5,15" Click="btnRestart_Click" FontSize="18" />
+                <Button Content="Review Images" x:Name="reviewBtn" Grid.Column="0" Margin="0,10,10,10" Padding="5,15" Click="reviewBtn_Click" FontSize="18" />
                 <Button Content="Discard Run" x:Name="discardBtn" Grid.Column="1" Margin="10,10,0,10" Padding="5,15" Click="btnRestart_Click" FontSize="18" />
             </Grid>
             <Button Content="Submit Run" x:Name="submitBtn" Margin="10" Padding="15" Click="btnRestart_Click" FontSize="18" />

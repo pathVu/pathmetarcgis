@@ -16,7 +16,11 @@ namespace PathMet_V2
     
     public interface ISensors : IDisposable
     {
-        bool Connected { get; }
+        bool Connected { get; set; }
+
+        string directory { get; set; }
+
+        double EncoderFinishDist { get; set; }
         SensorStatus CameraStatus { get; }
         SensorStatus EncoderStatus { get; }
         SensorStatus IMUStatus { get; }
