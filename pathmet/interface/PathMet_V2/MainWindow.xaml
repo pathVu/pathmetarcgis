@@ -17,20 +17,46 @@
             <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
+        
         <esri:MapView x:Name="MyMapView" Grid.Column="0"/>
         <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="5,3,5,0" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
+        <Button x:Name="downloadMapBtn" Grid.Column="0" Content="Take Map Offline" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,25"  Padding="5" FontSize="16" Click="downloadOfflineMap" Visibility="Collapsed"/>
         <StackPanel x:Name="PastRunDistContainer" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Hidden">
             <TextBlock x:Name="pastRunDistLabel" Grid.Column="0" Text="Past Run:" Margin="2,1" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
             <TextBlock x:Name="pastRunDistTxt" Grid.Column="0" Margin="5,3,5,0" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
         </StackPanel>
         
         <!-- Drawing edit and restart buttons-->
-        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
-            <Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="14" />
+        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Collapsed" Orientation="Horizontal" Grid.Column="0">
+            <Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="14" Visibility="Collapsed" />
             <Button Content="Undo" x:Name="undoBtn" Margin="5" Padding="5" FontSize="14" Click="UndoLastVertex" />
-            <Button Content="Redo" x:Name="redoBtn" Margin="5" Padding="5" FontSize="14" Command="{Binding RedoCommand}"/>
-            <Button Content="Done" x:Name="doneBtn" Margin="5" Padding="5"  FontSize="14" Command="{Binding CompleteCommand}" Click="doneDrawingLine_Click"/>
         </StackPanel>
+        <Grid x:Name="busyIndicator" Background="#807f7f7f" Visibility="Collapsed" Grid.Column="0">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10"
+                           Foreground="White" FontSize="18">
+                    <Run Text="Downloading offline map... "></Run>
+                    <Run x:Name="Percentage" Text=""></Run>
+                </TextBlock>
+                <ProgressBar x:Name="progressBar"
+                             Grid.Row="1" 
+                             Minimum="0" Maximum="100"
+                             IsEnabled="True"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" 
+                             Width="100" Height="10" Margin="0,0,0,10"/>
+                <Button x:Name="CancelJobButton" 
+                        Grid.Row="3"
+                        Content="Cancel" 
+                        Click="CancelJobButton_Click" 
+                        HorizontalAlignment="Center" 
+                        Width="100"/>
+            </Grid>
+        </Grid>
 
         
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="RunControlsPanel" >
@@ -84,7 +110,7 @@
             
         </StackPanel>
         
-        <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Hidden">
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Collapsed">
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Post-Run Controls</TextBlock>
             <Grid Margin="10 10">
                 <Grid.ColumnDefinitions>
