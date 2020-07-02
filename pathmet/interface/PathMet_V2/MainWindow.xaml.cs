@@ -1,35 +1,28 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
-using System.ComponentModel;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
+using Esri.ArcGISRuntime;
+using Esri.ArcGISRuntime.Data;
+using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Portal;
-using Esri.ArcGISRuntime.UI;
-using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Security;
 using Esri.ArcGISRuntime.Symbology;
-using Esri.ArcGISRuntime.UI.Controls;
-using Color = System.Drawing.Color;
-using Esri.ArcGISRuntime.Data;
-using System.Linq;
-using System.Drawing;
-using Point = System.Windows.Point;
-using System.Data.SqlTypes;
-using System.Windows.Input;
-using System.Windows.Controls;
-using System.Windows.Navigation;
-using Esri.ArcGISRuntime;
-using Image = System.Windows.Controls.Image;
-using System.IO;
-using System.Windows.Documents;
-using Esri.ArcGISRuntime.Tasks.Offline;
 using Esri.ArcGISRuntime.Tasks;
-using System.Runtime.Remoting.Channels;
+using Esri.ArcGISRuntime.Tasks.Offline;
+using Esri.ArcGISRuntime.UI;
+using Esri.ArcGISRuntime.UI.Controls;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms;
+using System.Windows.Threading;
+using Color = System.Drawing.Color;
+using Point = System.Windows.Point;
 
 namespace PathMet_V2
 {
@@ -42,8 +35,9 @@ namespace PathMet_V2
 
         public MainWindow()
         {
+            
             InitializeComponent();
-
+            
             InitializeUI();
 
             connectAndGetMaps();
@@ -56,6 +50,45 @@ namespace PathMet_V2
 
             //at this point, we've tried to automatically sign in the user.
             //from here, the user will have to hit "Login" if some part of the process didn't work.
+
+            //start sync timer
+            timeChecks = new List<DateTime>();
+            timeChecks.Add(lastSubmitTime);
+            timeChecks.Add(lastStartTime);
+            timeChecks.Add(lastInternetLostConnectionTime);
+            timeChecks.Add(lastSyncTime);
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1)};
+            timer.Tick += TimedSync;
+            timer.Start();
+        }
+
+        int syncWaitPeriod = 10; //minutes
+        DateTime lastSubmitTime;
+        DateTime lastStartTime;
+        DateTime lastInternetLostConnectionTime;
+        DateTime lastSyncTime;
+        List<DateTime> timeChecks;
+
+        private void TimedSync(object sender, EventArgs e)
+        {
+            DateTime now = DateTime.UtcNow;
+
+
+            if (!internetConnected() || !needMapSync)
+            {
+                return;
+            }
+
+            foreach (DateTime check in timeChecks)
+            {
+                if (check.AddMinutes(syncWaitPeriod) > now)
+                {
+                    return;
+                }
+            }
+
+            //if we've made it through all the checks
+            SyncOfflineMap(MyMapView.Map);
         }
 
         private async void connectAndGetMaps()
@@ -68,6 +101,20 @@ namespace PathMet_V2
             }
 
             await AuthenticateWithPortal();
+
+            //code for detecting unsynced maps to be synced now
+            //List<String> mapsToSync = Properties.Settings.Default.MapsToSync.Split(',').Where(x => !string.IsNullOrEmpty(x)).ToList();
+            //if (mapsToSync.Count() > 0)
+            //{
+            //    foreach (string mapId in mapsToSync)
+            //    {
+
+            //        var portalItem = await PortalItem.CreateAsync(portal, mapId);
+            //        Map map = new Map(portalItem);
+
+            //        SyncOfflineMap(map);
+            //    }
+            //}
 
             GetWebMaps(portal);
             
@@ -83,13 +130,13 @@ namespace PathMet_V2
                 case LoadStatus.Loaded:
                     this.Dispatcher.Invoke(() =>
                     {
-                        StatusTxt.Text = "Map Loaded!";
+                        StatusTxt.Text = "Map Loaded! Take Map Offline to start making runs.";
                         downloadMapBtn.Visibility = Visibility.Visible;
                     });
-                    this.Dispatcher.Invoke(() =>
+                    /*this.Dispatcher.Invoke(() =>
                         {
                             InitializePathMet();
-                        });
+                        });*/
 
                     break;
 
@@ -119,11 +166,7 @@ namespace PathMet_V2
 
         private void InitializePathMet()
         {
-            if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
-            {
-
-                return;
-            }
+            Console.WriteLine("initializing pathmet...");
 
             sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
             sensors.UpdateEvent += OnUpdate;
@@ -140,13 +183,26 @@ namespace PathMet_V2
 
             UpdateSensors();
 
-            //we only call initialize pathMet if the map is loaded successfully, so if connection is established here, we can move into waitForStart
             if (sensors.Connected)
             {
-                WaitForStartPt();
                 UpdateUI_PathMetConnected();
+                if (MyMapView.Map.LoadStatus == LoadStatus.Loaded)
+                {
+                    WaitForStartPt();
+                }
+                else
+                {
+                    UpdateUI_waitForMapChosen();
+                }
+            }
+            else
+            {
+                UpdateUI_SensorsNotConnected();
+                System.Windows.MessageBox.Show("PathMet Connection could not be established. \n - Unplug PathMet \n -Turn PathMet off, then back on \n -wait for 20 seconds for laser to initialize \n -click 'Restart Service' again", "PathMet connection failed");
             }
         }
+
+        
 
         private void Map_LoadStatusChanged(object sender, LoadStatusEventArgs e)
         {
@@ -155,8 +211,36 @@ namespace PathMet_V2
 
         void Window_Closing(object sender, CancelEventArgs e)
         {
+
+            // If map has not been synced yet
+            if (needMapSync)
+            {
+                //show warning message to user
+                string msg = "Current map has not been synced. Closing now will not update the online ARCgis map with the current map on this device. However, run data will still be available in the file system.";
+                MessageBoxResult result =
+                  System.Windows.MessageBox.Show(
+                    msg,
+                    "Close without Syncing?",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.No)
+                {
+                    // If user doesn't want to close, cancel closure
+                    e.Cancel = true;
+                }
+                else
+                { 
+                    //user is okay with closing without syncing. Save info about the unsynced map to User Properties
+                    Properties.Settings.Default.MapsToSync += ("," + mapIdToSync);
+                    Properties.Settings.Default.Save();
+                }
+            }
+
+            Console.WriteLine("Window closing called");
             sensors.UpdateEvent -= OnUpdate;
             sensors.Dispose();
+
         }
 
         delegate void UpdateSensorsDel();
@@ -176,7 +260,6 @@ namespace PathMet_V2
             System.Windows.MessageBox.Show(String.Format("Laser: {0:0.000} in\nEncoder: {1:0.0} ft", laser, encoder / 12.0), "Summary");
         }
 
-        private bool inPostRun = false;
         private bool runInProgress = false;
 
         #region pathMet_functions
@@ -241,8 +324,6 @@ namespace PathMet_V2
                     chkbxE.Background = System.Windows.Media.Brushes.Red;
                     chkbxE.IsChecked = false;
                 }
-
-                btnRestart.IsEnabled = true;
             }
             else //sensors are not connected
             {
@@ -261,10 +342,12 @@ namespace PathMet_V2
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
 
-            inPostRun = true;
 
             sensors.Stop();
+
             lastRunDist = RetrieveLastRunDist();
+            showPastRunDist();
+
             WaitForEndPt();
         }
 
@@ -300,11 +383,10 @@ namespace PathMet_V2
 
             //disable everything; the sensor will enable it when ready
 
-            //for testing onStop functionality, should be uncommented
             txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
-
+            btnRestart.IsEnabled = false;
 
 
             string name = txtFName.Text;
@@ -315,42 +397,82 @@ namespace PathMet_V2
 
             //sensors will call updateUI
             sensors.Start(name);//keep
-
-
+            CurrentRunFolderPath = sensors.directory;
+            lastStartTime = DateTime.UtcNow;
         }
 
         private void btnRestart_Click(object sender, EventArgs e)
         {
-            if (!sensors.Connected)
+            if (sensors != null)
             {
-                return;
+                sensors.UpdateEvent -= OnUpdate;
+                sensors.Dispose();
             }
 
-            sensors.Restart();
+            InitializePathMet();
         }
 
-        private void onSubmit(object sender, EventArgs e)
+        private async void onSubmit(object sender, EventArgs e)
         {
-            //convert current run to feature
+            try
+            {
+                //access layer we're writing the run to
+                //just have 1 here for simplicity on these first maps
+                FeatureLayer runsLayer = MyMapView.Map.OperationalLayers[1] as FeatureLayer;
+                GeodatabaseFeatureTable runFeatureTable = (GeodatabaseFeatureTable)runsLayer.FeatureTable;
 
-            //upload newly created feature to featuretable
+                //convert current run to feature
+                ArcGISFeature newRunFeature = (ArcGISFeature)runFeatureTable.CreateFeature();
+                newRunFeature.Geometry = currentRunGeom;
 
-            incrementRunName();
+                //TODO here you could check for if we are trying to submit an incomplete run and handle it differently
 
-            resetForNewRun();
+                //set feature attributes
+                String runName = txtFName.Text;
+                newRunFeature.SetAttributeValue("Completion", "Complete");
+                newRunFeature.SetAttributeValue("Run", runName);
+                newRunFeature.SetAttributeValue("Street_Type", "Sidewalk");
 
+                //upload newly created feature to featuretable
+                await runFeatureTable.AddFeatureAsync(newRunFeature);
+
+                //apply edits
+                //runfeaturetable.applyedits
+
+                mapNotSynced();
+
+                //update the last submit time
+                lastSubmitTime = DateTime.UtcNow;
+
+                // Update the feature to get the updated objectid - a temporary ID is used before the feature is added.
+                newRunFeature.Refresh();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.ToString(), "Error adding feature");
+            }
+
+            resetForNewRun(true);
         }
 
-        private void resetForNewRun()
+        private void resetForNewRun(bool increment)
         {
-            //say that we're not in post run anymore
-            inPostRun = false;
+
+            if (increment)
+            {
+                incrementRunName();
+            }
 
             //clear currentRunGeom
             currentRunGeom = null;
 
             //clear the last run dist
             lastRunDist = 0.0;
+            showPastRunDist();
+
+            //take all tap actions off the map
+            MyMapView.GeoViewTapped -= StartPt_Tapped;
+            MyMapView.GeoViewTapped -= EndPt_Tapped;
 
             //clear the graphics layers which are only used for drawing the run
             runsLineOverlay.Graphics.Clear();
@@ -365,12 +487,12 @@ namespace PathMet_V2
         private void onDiscard(object sender, EventArgs e)
         {
             //delete folder that had the run in it
+            Directory.Delete(CurrentRunFolderPath, true);
 
             //dont upload to feature layer
-
             //make folder name not increment if possible
 
-            resetForNewRun();
+            resetForNewRun(false);
         }
 
 
@@ -420,6 +542,7 @@ namespace PathMet_V2
 
         private bool startPtChosen = false;
         private Polyline currentRunGeom = null;
+        private String CurrentRunFolderPath = "";
         private MapPoint startPoint = null;
         private double lastRunDist;
         PolylineBuilder polyLineBuilder;
@@ -439,8 +562,16 @@ namespace PathMet_V2
             }
             else
             {
-                var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
-                InitializeMap(mapId);
+                if (internetConnected())
+                {
+                    var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
+                    InitializeMap(mapId);
+
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Reconnect to the internet to be able to load this map.", "Unable to Load Map Without Internet Connection");
+                }
             }
         }
 
@@ -454,6 +585,7 @@ namespace PathMet_V2
                 //get map by portal
                 var portalItem = await PortalItem.CreateAsync(portal, mapId);
                 Map currentMap = new Map(portalItem);
+
                 //drawing initialization
 
                 // Add a graphics overlay for showing the run line. 
@@ -487,7 +619,6 @@ namespace PathMet_V2
 
                 //map assignment
                 MyMapView.Map = currentMap;
-
 
                 //extent settings for navigation mode
                 MyMapView.LocationDisplay.IsEnabled = true;
@@ -563,15 +694,11 @@ namespace PathMet_V2
                 return;
             }
 
-            if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
-            {
-                System.Windows.MessageBox.Show("Map not loaded");
-                UpdateUI_waitForLogin();
-                return;
-            }
+            
 
             startPtChosen = false;
             MyMapView.GeoViewTapped += StartPt_Tapped;
+
             UpdateUI_waitForStartPt();
         }
 
@@ -605,8 +732,6 @@ namespace PathMet_V2
 
                 Console.WriteLine("StartPt chosen, start should be available.");
 
-                //TODO: I think delete
-                //UpdateSensors();
             }
             else
             {
@@ -618,7 +743,7 @@ namespace PathMet_V2
         private async Task<MapPoint> SnapToLine(MapPoint inputPt)
         {
 
-            FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers[0] as FeatureLayer;
+            FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers.First<Layer>() as FeatureLayer;
 
             FeatureQueryResult SelectionResult;
             MapPoint snappedPoint = inputPt;
@@ -685,7 +810,7 @@ namespace PathMet_V2
             }
             catch (Exception ex)
             {
-
+                System.Windows.MessageBox.Show(ex.Message, "Exception in SnapToLine");
             }
 
             if (inputSnapped)
@@ -709,10 +834,14 @@ namespace PathMet_V2
             //show length of past run
             PastRunDistContainer.Visibility = Visibility.Visible;
             pathDrawingControls.Visibility = Visibility.Visible;
-
-            pastRunDistTxt.Text = lastRunDist.ToString() + "ft";
+            
 
             UpdateUI_waitForEndPt();
+        }
+
+        private void showPastRunDist()
+        {
+            pastRunDistTxt.Text = lastRunDist.ToString() + "ft";
         }
 
         private void UndoLastVertex(object sender, RoutedEventArgs e) {
@@ -819,24 +948,34 @@ namespace PathMet_V2
         private GenerateOfflineMapJob _generateOfflineMapJob;
         private async void downloadOfflineMap(object sender, RoutedEventArgs e)
         {
+            
+            if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
+            {
+                System.Windows.MessageBox.Show(MyMapView.Map.LoadStatus.ToString(), "Map not loaded");
+
+                UpdateUI_waitForLogin();
+                return;
+            }
+
             try
             {
                 busyIndicator.Visibility = Visibility.Visible;
+                busyJobText.Text = "Downloading offline map... ";
 
                 //area of interest set to the extent of the current map
                 Envelope areaOfInterest = MyMapView.Map.Item.Extent;
 
                 //set up our folder to hold offline map data
-                var offlinedatafolder = Path.Combine(Properties.Settings.Default.LogPath, "OfflineMapData", MyMapView.Map.Item.ItemId);
+                var offlineMapdatafolder = Path.Combine(Properties.Settings.Default.LogPath, "OfflineMapData", MyMapView.Map.Item.ItemId);
 
-                if (Directory.Exists(offlinedatafolder))
+                if (Directory.Exists(offlineMapdatafolder))
                 {
-                    Directory.Delete(offlinedatafolder, true);
+                    Directory.Delete(offlineMapdatafolder, true);
                 }
 
-                if (!Directory.Exists(offlinedatafolder))
+                if (!Directory.Exists(offlineMapdatafolder))
                 {
-                    Directory.CreateDirectory(offlinedatafolder);
+                    Directory.CreateDirectory(offlineMapdatafolder);
                 }
 
                 // Create an offline map task with the current (online) map.
@@ -846,7 +985,7 @@ namespace PathMet_V2
                 GenerateOfflineMapParameters parameters = await takeMapOfflineTask.CreateDefaultGenerateOfflineMapParametersAsync(areaOfInterest);
 
                 // Create the job with the parameters and output location.
-                _generateOfflineMapJob = takeMapOfflineTask.GenerateOfflineMap(parameters, offlinedatafolder);
+                _generateOfflineMapJob = takeMapOfflineTask.GenerateOfflineMap(parameters, offlineMapdatafolder);
 
                 // Handle the progress changed event for the job.
                 _generateOfflineMapJob.ProgressChanged += OfflineMapJob_ProgressChanged;
@@ -887,6 +1026,17 @@ namespace PathMet_V2
 
                 // Show a message that the map is offline.
                 StatusTxt.Text = "Map has been taken offline.";
+
+                mapSynced();
+
+                if (sensors == null || sensors.Connected == false)
+                {
+                    InitializePathMet();
+                }
+                else
+                {
+                    WaitForStartPt();
+                }
             }
             catch (TaskCanceledException)
             {
@@ -906,10 +1056,114 @@ namespace PathMet_V2
 
         }
 
+        private bool needMapSync;
+        private string mapIdToSync;
+        private async void SyncOfflineMap(Map map)
+        {
+            if (needMapSync)
+            {
+                try
+                {
+                    busyIndicator.Visibility = Visibility.Visible;
+                    busyJobText.Text = "Syncing offline map... ";
+
+                    var task = await OfflineMapSyncTask.CreateAsync(map);
+
+                    var parameters = new OfflineMapSyncParameters()
+                    {
+                        SyncDirection = SyncDirection.Bidirectional,
+                        RollbackOnFailure = true,
+                    };
+
+                    var job = task.SyncOfflineMap(parameters);
+                    job.ProgressChanged += SyncOfflineMapJob_ProgressChanged;
+
+                    var results = await job.GetResultAsync();
+
+                    // Check for job failure (writing the output was denied, e.g.).
+                    if (job.Status == JobStatus.Succeeded)
+                    {
+                        mapSynced();
+
+                        lastSyncTime = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Offline map sync failed.", "Job Status");
+                        busyIndicator.Visibility = Visibility.Collapsed;
+                    }
+
+                    if (results.HasErrors)
+                    {
+                        System.Windows.MessageBox.Show("Layer errors with offline map sync");
+                    }
+
+                    // Show a message that the map is offline.
+                    StatusTxt.Text = "Offline Map has been synced.";
+                }
+                catch (TaskCanceledException)
+                {
+                    //  task was canceled.
+                    System.Windows.MessageBox.Show("Syncing offline map was canceled");
+                }
+                catch (Exception ex)
+                {
+                    // Exception while taking the map offline.
+                    System.Windows.MessageBox.Show(ex.Message, "Offline map sync error");
+                }
+                finally
+                {
+                    // Hide the activity indicator when the job is done.
+                    busyIndicator.Visibility = Visibility.Collapsed;
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Map Does not need syncing.");
+            }
+        }
+
+        private void mapSynced()
+        {
+            needMapSync = false;
+            mapIdToSync = "";
+            SyncBtn.IsEnabled = false;
+            MapSyncStatus.Text = "Map is Synced";
+            MapSyncStatus.Background = System.Windows.Media.Brushes.PowderBlue;
+        }
+
+        private void mapNotSynced()
+        {
+            needMapSync = true;
+            mapIdToSync = MyMapView.Map.Item.ItemId;
+            SyncBtn.IsEnabled = true;
+            MapSyncStatus.Text = "Map has not been synced";
+            MapSyncStatus.Background = System.Windows.Media.Brushes.LightPink;
+        }
+
+        private async void SyncOfflineWaitingMaps()
+        {
+            
+        }
+
         private void OfflineMapJob_ProgressChanged(object sender, EventArgs e)
         {
             // Get the job.
             GenerateOfflineMapJob job = sender as GenerateOfflineMapJob;
+
+            // Dispatch to the UI thread.
+            Dispatcher.Invoke(() =>
+            {
+                // Show the percent complete and update the progress bar.
+                Percentage.Text = job.Progress > 0 ? job.Progress.ToString() + " %" : string.Empty;
+                progressBar.Value = job.Progress;
+            });
+        }
+
+        private void SyncOfflineMapJob_ProgressChanged(object sender, EventArgs e)
+        {
+            // Get the job.
+            OfflineMapSyncJob job = sender as OfflineMapSyncJob;
 
             // Dispatch to the UI thread.
             Dispatcher.Invoke(() =>
@@ -939,7 +1193,7 @@ namespace PathMet_V2
 
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = false;
+            btnRestart.IsEnabled = true;
             txtFName.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
@@ -986,14 +1240,23 @@ namespace PathMet_V2
             pathDrawingControls.Visibility = Visibility.Hidden;
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = false;
-            txtFName.IsEnabled = false;
+            btnRestart.IsEnabled = true;
+
+            //fill the name of the run with a default name and allow user to change it
+            txtFName.IsEnabled = true;
+            if (txtFName.Text == "")
+            {
+                txtFName.Text = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
+            }
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
             StatusTxt.Text = "Choose starting point";
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
+
+            RunControlsPanel.Visibility = Visibility.Visible;
+            PostRunControlsPanel.Visibility = Visibility.Hidden;
         }
 
         private void UpdateUI_waitForEndPt()
@@ -1049,7 +1312,7 @@ namespace PathMet_V2
             pmStart.IsEnabled = true;
             btnStop.IsEnabled = false;
             txtFName.IsEnabled = true;
-            StatusTxt.Text = "Hit \"Start\" to begin run.";
+            StatusTxt.Text = "Now you may type a specific name for the run.\nHit \"Start\" to begin run.";
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
         }
 
@@ -1077,8 +1340,6 @@ namespace PathMet_V2
             chkbxI.IsChecked = false;
             chkbxE.Background = System.Windows.Media.Brushes.Transparent;
             chkbxE.IsChecked = false;
-
-            btnRestart.IsEnabled = false;
         }
 
         #endregion
@@ -1261,16 +1522,18 @@ namespace PathMet_V2
             }
         }
 
-        public static bool internetConnected()
+
+        public bool internetConnected()
         {
             try
             {
                 using (var client = new System.Net.WebClient())
                 using (client.OpenRead("http://google.com/generate_204"))
-                    return true;
+                return true;
             }
             catch
             {
+                lastInternetLostConnectionTime = DateTime.UtcNow;
                 return false;
             }
         }
@@ -1291,6 +1554,13 @@ namespace PathMet_V2
             SignOut();
             connectAndGetMaps();
         }
+
+        private void Sync_Clicked(object sender, RoutedEventArgs e)
+        {
+            SyncOfflineMap(MyMapView.Map);
+        }
+
+        
     }
 
 }

@@ -161,7 +161,7 @@ namespace PathMet_V2
                 thread = new Thread(Run);
                 thread.Start();
             }
-            catch (Exception e)
+            catch
             {
                 Connected = false; 
             }
