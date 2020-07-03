@@ -85,9 +85,11 @@
       <DependentUpon>ReviewImagesWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SketchOnMap.cs" />
-    <Compile Include="RunGeometryEditor.cs" />
     <Compile Include="Sensors.cs" />
     <Compile Include="SerialSensors.cs" />
+    <Compile Include="UserMessageBox.xaml.cs">
+      <DependentUpon>UserMessageBox.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -107,6 +109,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ReviewImagesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserMessageBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -156,6 +162,22 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="icon_broken_sidewalk.png" />
+    <Content Include="icon_broken_sidewalk.svg" />
+    <Resource Include="icon_other.png" />
+    <Content Include="icon_other.svg" />
+    <Resource Include="icon_pause.png" />
+    <Content Include="icon_pause.svg" />
+    <Resource Include="icon_start.png" />
+    <Content Include="icon_start.svg" />
+    <Resource Include="icon_stop.png" />
+    <Content Include="icon_stop.svg" />
+    <Resource Include="icon_tripping_hazard.png" />
+    <Content Include="icon_tripping_hazard.svg" />
+    <Resource Include="icon_vegetation.png" />
+    <Content Include="icon_vegetation.svg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

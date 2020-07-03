@@ -8,6 +8,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_broken_sidewalk.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_other.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_pause.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_start.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_stop.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_tripping_hazard.svg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("icon_vegetation.svg")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("atmosphere_accurate_3d_ps.cso")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("atmosphere_accurate_3d_vs.cso")]
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("atmosphere_accurate_ps.cso")]

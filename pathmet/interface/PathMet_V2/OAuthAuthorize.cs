@@ -75,8 +75,9 @@ namespace PathMet_V2
             _authWindow = new Window
             {
                 Content = authBrowser,
-                Height = 420,
-                Width = 350,
+                Title = "Log In to ArcGIS",
+                //Height = 420,
+                //Width = 350,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
 

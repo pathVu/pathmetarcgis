@@ -23,6 +23,7 @@ using System.Windows.Forms;
 using System.Windows.Threading;
 using Color = System.Drawing.Color;
 using Point = System.Windows.Point;
+using System.Net.NetworkInformation;
 
 namespace PathMet_V2
 {
@@ -35,7 +36,7 @@ namespace PathMet_V2
 
         public MainWindow()
         {
-            
+
             InitializeComponent();
             
             InitializeUI();
@@ -79,9 +80,9 @@ namespace PathMet_V2
                 return;
             }
 
-            foreach (DateTime check in timeChecks)
+            foreach (DateTime timedEvent in timeChecks)
             {
-                if (check.AddMinutes(syncWaitPeriod) > now)
+                if (timedEvent.AddMinutes(syncWaitPeriod) > now)
                 {
                     return;
                 }
@@ -96,8 +97,10 @@ namespace PathMet_V2
             //TODO check if we have a map already downloaded/ let user browse downloaded maps
 
             if (!internetConnected()){
+                
                 StatusTxt.Text = "No internet connection. Reconnect to get maps.";
                 return;
+                
             }
 
             await AuthenticateWithPortal();
@@ -167,38 +170,45 @@ namespace PathMet_V2
         private void InitializePathMet()
         {
             Console.WriteLine("initializing pathmet...");
-
-            sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
-            sensors.UpdateEvent += OnUpdate;
-
-            sensors.ExistsEvent += () =>
+            try
             {
-                this.Dispatcher.Invoke((MethodInvoker)(() => { FileExists(); }));
-            };
+                sensors = new SerialSensors(Properties.Settings.Default.SensorsPort);
+                sensors.UpdateEvent += OnUpdate;
 
-            sensors.SummaryEvent += (double laser, double encoder) =>
-            {
-                this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
-            };
-
-            UpdateSensors();
-
-            if (sensors.Connected)
-            {
-                UpdateUI_PathMetConnected();
-                if (MyMapView.Map.LoadStatus == LoadStatus.Loaded)
+                sensors.ExistsEvent += () =>
                 {
-                    WaitForStartPt();
+                    this.Dispatcher.Invoke((MethodInvoker)(() => { FileExists(); }));
+                };
+
+                sensors.SummaryEvent += (double laser, double encoder) =>
+                {
+                    this.Dispatcher.Invoke((MethodInvoker)(() => { Summary(laser, encoder); }));
+                };
+
+                UpdateSensors();
+
+                if (sensors.Connected)
+                {
+                    UpdateUI_PathMetConnected();
+                    if (MyMapView.Map.LoadStatus == LoadStatus.Loaded)
+                    {
+                        WaitForStartPt();
+                    }
+                    else
+                    {
+                        UpdateUI_waitForMapChosen();
+                    }
                 }
                 else
                 {
-                    UpdateUI_waitForMapChosen();
+                    UpdateUI_SensorsNotConnected();
+                    new UserMessageBox("PathMet Connection could not be established. \n - Unplug PathMet \n -Turn PathMet off, then back on \n -wait for 20 seconds for laser to initialize \n -click 'Restart Service' again", "PathMet connection failed").ShowDialog();
                 }
             }
-            else
+            catch
             {
                 UpdateUI_SensorsNotConnected();
-                System.Windows.MessageBox.Show("PathMet Connection could not be established. \n - Unplug PathMet \n -Turn PathMet off, then back on \n -wait for 20 seconds for laser to initialize \n -click 'Restart Service' again", "PathMet connection failed");
+                new UserMessageBox("PathMet Connection could not be established. \n - Unplug PathMet \n -Turn PathMet off, then back on \n -wait for 20 seconds for laser to initialize \n -click 'Restart Service' again", "PathMet connection failed").ShowDialog();
             }
         }
 
@@ -216,15 +226,17 @@ namespace PathMet_V2
             if (needMapSync)
             {
                 //show warning message to user
-                string msg = "Current map has not been synced. Closing now will not update the online ARCgis map with the current map on this device. However, run data will still be available in the file system.";
-                MessageBoxResult result =
-                  System.Windows.MessageBox.Show(
-                    msg,
-                    "Close without Syncing?",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
+                //string msg = "Current map has not been synced. Closing now will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system.";
+                //MessageBoxResult result =
+                //  System.Windows.MessageBox.Show(
+                //    msg,
+                //    "Close without Syncing?",
+                //    MessageBoxButton.YesNo,
+                //    MessageBoxImage.Warning);
+
+                bool result = (bool) new UserMessageBox("Current map has not been synced. Closing now will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system.", "Close Without Syncing?", "yesno").ShowDialog();
                 
-                if (result == MessageBoxResult.No)
+                if (result)
                 {
                     // If user doesn't want to close, cancel closure
                     e.Cancel = true;
@@ -237,9 +249,11 @@ namespace PathMet_V2
                 }
             }
 
-            Console.WriteLine("Window closing called");
-            sensors.UpdateEvent -= OnUpdate;
-            sensors.Dispose();
+            if (sensors != null)
+            {
+                sensors.UpdateEvent -= OnUpdate;
+                sensors.Dispose();
+            }
 
         }
 
@@ -252,12 +266,12 @@ namespace PathMet_V2
 
         private void FileExists()
         {
-            System.Windows.MessageBox.Show("That run exists. Please choose a different name.", "File Exists");
+            new UserMessageBox("That run exists. Please choose a different name.", "File Exists").ShowDialog();
         }
 
         private void Summary(double laser, double encoder)
         {
-            System.Windows.MessageBox.Show(String.Format("Laser: {0:0.000} in\nEncoder: {1:0.0} ft", laser, encoder / 12.0), "Summary");
+            new UserMessageBox(String.Format("Laser: {0:0.000} in\nEncoder: {1:0.0} ft", laser, encoder / 12.0), "Summary").ShowDialog();
         }
 
         private bool runInProgress = false;
@@ -376,6 +390,12 @@ namespace PathMet_V2
 
             if (!sensors.Connected)
             {
+                UpdateUI_SensorsNotConnected();
+                return;
+            }
+
+            if (!startPtChosen)
+            {
                 return;
             }
 
@@ -449,7 +469,7 @@ namespace PathMet_V2
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(ex.ToString(), "Error adding feature");
+                new UserMessageBox("ex.ToString()", "Error adding feature","error").ShowDialog();
             }
 
             resetForNewRun(true);
@@ -570,7 +590,7 @@ namespace PathMet_V2
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("Reconnect to the internet to be able to load this map.", "Unable to Load Map Without Internet Connection");
+                    new UserMessageBox("Reconnect to the internet to be able to load this map.", "Unable to Load Map Without Internet Connection", "error").ShowDialog();
                 }
             }
         }
@@ -679,7 +699,8 @@ namespace PathMet_V2
             catch (Exception ex)
             {
                 // Report exceptions
-                System.Windows.MessageBox.Show("Error editing shape: " + ex.Message);
+                new UserMessageBox("Error Editing Shape", ex.Message, "error").ShowDialog();
+
             }
         }
 
@@ -689,7 +710,7 @@ namespace PathMet_V2
         {
             if (!sensors.Connected)
             {
-                System.Windows.MessageBox.Show("Lost pathMet connection");
+                new UserMessageBox("Lost pathMet connection", "PathMet Error", "error").ShowDialog();
                 InitializePathMet();
                 return;
             }
@@ -810,7 +831,7 @@ namespace PathMet_V2
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(ex.Message, "Exception in SnapToLine");
+                new UserMessageBox(ex.Message, "Exception in SnapToLine").ShowDialog();
             }
 
             if (inputSnapped)
@@ -951,9 +972,15 @@ namespace PathMet_V2
             
             if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
             {
-                System.Windows.MessageBox.Show(MyMapView.Map.LoadStatus.ToString(), "Map not loaded");
+                new UserMessageBox("No map loaded, so no map to take offline. MapLoadStatus: " + MyMapView.Map.LoadStatus.ToString(), "No Map Loaded").ShowDialog();
 
                 UpdateUI_waitForLogin();
+                return;
+            }
+
+            if (!internetConnected())
+            {
+                StatusTxt.Text = "No internet connection. Reconnect to get maps.";
                 return;
             }
 
@@ -996,7 +1023,7 @@ namespace PathMet_V2
                 // Check for job failure (writing the output was denied, e.g.).
                 if (_generateOfflineMapJob.Status != JobStatus.Succeeded)
                 {
-                    System.Windows.MessageBox.Show("Generate offline map package failed.", "Job Status");
+                    new UserMessageBox("Generate offline map package failed.", "Job Status", "error").ShowDialog();
                     busyIndicator.Visibility = Visibility.Collapsed;
                 }
 
@@ -1012,7 +1039,7 @@ namespace PathMet_V2
 
                     // Show layer errors.
                     string errorText = errorBuilder.ToString();
-                    System.Windows.MessageBox.Show(errorText, "Layer errors");
+                    new UserMessageBox(errorText, "Layer errors", "error").ShowDialog();
                 }
 
                 // Display the offline map.
@@ -1026,6 +1053,10 @@ namespace PathMet_V2
 
                 // Show a message that the map is offline.
                 StatusTxt.Text = "Map has been taken offline.";
+
+                MyMapView.LocationDisplay.IsEnabled = false;
+
+                MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.Off;
 
                 mapSynced();
 
@@ -1041,12 +1072,12 @@ namespace PathMet_V2
             catch (TaskCanceledException)
             {
                 // Generate offline map task was canceled.
-                System.Windows.MessageBox.Show("Taking map offline was canceled");
+                new UserMessageBox("Taking map offline was canceled", "").ShowDialog();
             }
             catch (Exception ex)
             {
                 // Exception while taking the map offline.
-                System.Windows.MessageBox.Show(ex.Message, "Offline map error");
+                new UserMessageBox(ex.Message, "Offline map error", "error").ShowDialog();
             }
             finally
             {
@@ -1089,13 +1120,13 @@ namespace PathMet_V2
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show("Offline map sync failed.", "Job Status");
+                        new UserMessageBox("Offline map sync failed. Job Status: " + job.Status.ToString(), "Map Sync Failed", "error").ShowDialog();
                         busyIndicator.Visibility = Visibility.Collapsed;
                     }
 
                     if (results.HasErrors)
                     {
-                        System.Windows.MessageBox.Show("Layer errors with offline map sync");
+                        new UserMessageBox("Layer errors with offline map sync", "Layer Errors", "error").ShowDialog();
                     }
 
                     // Show a message that the map is offline.
@@ -1104,12 +1135,12 @@ namespace PathMet_V2
                 catch (TaskCanceledException)
                 {
                     //  task was canceled.
-                    System.Windows.MessageBox.Show("Syncing offline map was canceled");
+                    new UserMessageBox("Syncing offline map was canceled", "Sync Cancelled").ShowDialog();
                 }
                 catch (Exception ex)
                 {
                     // Exception while taking the map offline.
-                    System.Windows.MessageBox.Show(ex.Message, "Offline map sync error");
+                    new UserMessageBox(ex.Message, "Offline map sync error", "error").ShowDialog();
                 }
                 finally
                 {
@@ -1119,7 +1150,7 @@ namespace PathMet_V2
             }
             else
             {
-                System.Windows.MessageBox.Show("Map Does not need syncing.");
+                new UserMessageBox("Map Does not need syncing.", "Sync Not Needed").ShowDialog();
             }
         }
 
@@ -1143,7 +1174,7 @@ namespace PathMet_V2
 
         private async void SyncOfflineWaitingMaps()
         {
-            
+            //here is where we want to go through the list of offline maps downloaded that need syncing and sync them 
         }
 
         private void OfflineMapJob_ProgressChanged(object sender, EventArgs e)
@@ -1483,57 +1514,79 @@ namespace PathMet_V2
 
         private async void GetWebMaps(ArcGISPortal portal)
         {
+
+            if (!internetConnected())
+            {
+                StatusTxt.Text = "No internet connection. Reconnect to get maps.";
+                return;
+            }
+            
             if (portal == null)
             {
                 UpdateUI_waitForLogin();
                 return;
             }
 
-            var groups = portal.User.Groups;
+            
 
-            //get all webmaps that belong to the user this portal was created with
-            foreach (PortalGroup portalGroup in groups)
+            try
             {
-                Console.WriteLine("grouptitle: " + portalGroup.Title);
-                var parameters = PortalQueryParameters.CreateForItemsOfTypeInGroup(PortalItemType.WebMap, portalGroup.GroupId);
-                parameters.Limit = 50;
+                var groups = portal.User.Groups;
 
-                var portalItems = (await portal.FindItemsAsync(parameters)).Results;
-
-                availableMaps = portalItems.ToList();
-            }
-
-            if (availableMaps.Count > 0)
-            {
-                //show the retrieved maps in the dropdown box
-                foreach (PortalItem map in availableMaps)
+                //get all webmaps that belong to the user this portal was created with
+                foreach (PortalGroup portalGroup in groups)
                 {
-                    ComboBoxItem availableMap = new ComboBoxItem();
-                    availableMap.Content = map.Title;
-                    availableMap.Tag = map.ItemId;
-                    UserMapsBox.Items.Add(availableMap);
+                    
+                    var parameters = PortalQueryParameters.CreateForItemsOfTypeInGroup(PortalItemType.WebMap, portalGroup.GroupId);
+                    parameters.Limit = 50;
+
+                    var portalItems = (await portal.FindItemsAsync(parameters)).Results;
+
+                    availableMaps = portalItems.ToList();
                 }
-                UpdateUI_waitForMapChosen();
-                
+
+                if (availableMaps.Count > 0)
+                {
+                    //show the retrieved maps in the dropdown box
+                    foreach (PortalItem map in availableMaps)
+                    {
+                        ComboBoxItem availableMap = new ComboBoxItem();
+                        availableMap.Content = map.Title;
+                        availableMap.Tag = map.ItemId;
+                        UserMapsBox.Items.Add(availableMap);
+                    }
+                    UpdateUI_waitForMapChosen();
+
+                }
+                else
+                {
+                    StatusTxt.Text = "No maps found for user. Log in to a different account or try again.";
+                }
             }
-            else
+            catch
             {
-                StatusTxt.Text = "No maps found for user. Log in to a different account or try again.";
+
             }
         }
 
 
         public bool internetConnected()
         {
+            System.Net.WebRequest req = System.Net.WebRequest.Create("https://www.google.co.in/");
+            req.Timeout = 4000;
+            System.Net.WebResponse resp;
             try
             {
-                using (var client = new System.Net.WebClient())
-                using (client.OpenRead("http://google.com/generate_204"))
+                resp = req.GetResponse();
+                resp.Close();
+                req = null;
                 return true;
             }
             catch
             {
+                req = null;
                 lastInternetLostConnectionTime = DateTime.UtcNow;
+                Console.WriteLine("no internet connection");
                 return false;
             }
         }
@@ -1551,6 +1604,11 @@ namespace PathMet_V2
 
         private void loginBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (!internetConnected()){
+                StatusTxt.Text = "No internet connection. Reconnect to log in.";
+                return;
+            }
+
             SignOut();
             connectAndGetMaps();
         }

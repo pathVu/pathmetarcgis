@@ -1266,3 +1266,5 @@ C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\Path
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\ReviewImagesWindow.g.cs
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\ReviewImagesWindow.baml
+R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\UserMessageBox.g.cs
+R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\UserMessageBox.baml
