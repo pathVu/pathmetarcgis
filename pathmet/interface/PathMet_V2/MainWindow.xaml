@@ -24,7 +24,7 @@
         
         <esri:MapView x:Name="MyMapView" Grid.Column="0"/>
         <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="5,3,5,0" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
-        <Button x:Name="downloadMapBtn" Grid.Column="0" Content="Take Map Offline" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,25"  Padding="5" FontSize="16" Click="downloadOfflineMap" Visibility="Collapsed"/>
+        <Button x:Name="downloadMapBtn" Grid.Column="0" Content="Take Map Offline" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,25"  Padding="5" FontSize="16" Click="downloadOfflineMap" Visibility="Collapsed" />
         <StackPanel x:Name="PastRunDistContainer" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Hidden">
             <TextBlock x:Name="pastRunDistLabel" Grid.Column="0" Text="Past Run:" Margin="2,1" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
             <TextBlock x:Name="pastRunDistTxt" Grid.Column="0" Margin="5,3,5,0" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
@@ -61,156 +61,204 @@
                         Width="100"/>
             </Grid>
         </Grid>
-        <Canvas Background="#D8DFE3" Grid.Column="1"/>
-        <Border Margin="10" Grid.Column="1">
-            <Grid Grid.Column="1" x:Name="RunControlsPanel">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="3*"/>
-                    <RowDefinition Height="2*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" VerticalAlignment="Center">
-                    <TextBlock Name="PathMetTitle" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Run Foreground="#0A6893" Text="WELCOME TO"/>
-                        <Run Foreground="#0A6893" FontWeight="Bold" Text="PATHMET"/>
-                    </TextBlock>
-                    <Grid x:Name="MapSyncInfoContainer" Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="MapSyncStatus" Grid.Column="0" Padding="5,2" Text="" TextAlignment="Center"/>
-                        <Button x:Name="SyncBtn" Grid.Column="1" Content="Sync" Padding="0" Margin="15,0" Click="Sync_Clicked" IsEnabled="False"/>
-                    </Grid>
 
-                    <Grid x:Name="UserInfoContainer">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox x:Name="UserMapsBox" Grid.Column="0" Padding="5,2" SelectionChanged="MapChosen">
-                            <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
-                        </ComboBox>
-                        <Button x:Name="loginBtn" Grid.Column="1" Content="Login" Padding="0" Margin="15,0" Click="loginBtn_Click" />
-                    </Grid>
-                    <Grid Name="sensorsBox" Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False"/>
-                        <CheckBox Grid.Column="1" Content="Laser" Name="chkbxL" IsHitTestVisible="False"/>
-                        <CheckBox Grid.Column="2" Content="Camera" Name="chkbxC" IsHitTestVisible="False"/>
-                        <CheckBox Grid.Column="3" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" />
-                        <CheckBox Grid.Column="4" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False"/>
-                    </Grid>
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                    </Grid>
-                    <TextBox Name="txtFName" Margin="0 10" Padding="2" />
-                    <Canvas Background="#EDF0F2" />
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <Button Content="Start " x:Name="pmStart" Margin="0,10,10,10" Padding="5" ScrollViewer.CanContentScroll="True" Click="OnStart" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <Button Content="Stop" Name="btnStop" Margin="10,10,0,10" Padding="5" ScrollViewer.CanContentScroll="True" Click="OnStop" />
-                        </StackPanel>
-                    </Grid>
-                    <Button Content="Restart Service" Name="btnRestart" Margin="0 10" Padding="5" Click="btnRestart_Click"/>
-                </StackPanel>
-                <Grid Grid.Row="1" Name="LowerPanelGrid">
+        <Grid Grid.Column="1" x:Name="FullControlPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="5*"/>
+            </Grid.RowDefinitions>
+        <Border Background="#EDF0F2" Padding="10" Grid.Row="0">
+                <Grid Name="UserContentGrid" Grid.Row="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="2*"/>
-                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="OBSTACLES" HorizontalAlignment="Center" FontWeight="Bold" FontSize="18" Foreground="#0A6893" VerticalAlignment="Center"/>
-                    <Grid Name="ObstacleGrid" Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Border Name="btnTrippingHazard_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="0">
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.3" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <Button  Name="btnTrippingHazard" ScrollViewer.CanContentScroll="True" Click="btnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" >
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Image Source="icon_tripping_hazard.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Tripping Hazard" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
-                                </Grid>
-                            </Button>
-                        </Border>
-                        <Border Name="btnBrokenSidewalk_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="1">
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.3" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <Button  Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="btnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" >
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Image Source="icon_broken_sidewalk.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Broken Sidewalk" Grid.Row="1"  HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
-                                </Grid>
-                            </Button>
-                        </Border>
-                        <Border Name="btnVegetation_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="2">
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.3" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <Button  Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="btnVegetation_Click" Background="Transparent" BorderBrush="Transparent" >
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Image Source="icon_vegetation.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Vegetation" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
-                                </Grid>
-                            </Button>
-                        </Border>
-                        <Border Name="btnOther_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="3">
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.3" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <Button  Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" >
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Image Source="icon_other.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Other" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
-                                </Grid>
-                            </Button>
-                        </Border>
-                        
-                    </Grid>
-                    <TextBox x:Name="CommentBox" Grid.Row="2" Margin="0 10"/>
-                </Grid>
+                    <Border Background="#D8DFE3" HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="0">
+                            <TextBlock x:Name="userName" Text="" Visibility="Collapsed" VerticalAlignment="Center" FontSize="18" Margin="10"/>
+                            <Image x:Name="profilePic" Visibility="Collapsed" Margin="10"/>
+                            <Button x:Name="loginBtn" Content="Login" Padding="20 5" Click="loginBtn_Click" Margin="10" FontSize="18"/>
+                        </StackPanel>
+                    </Border>
 
+                    <TextBlock Name="PathMetTitle" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
+                        <Run Foreground="#0A6893" Text="WELCOME TO"/>
+                        <Run Foreground="#0A6893" FontWeight="Bold" Text="PATHMET"/>
+                </TextBlock>
+                <ComboBox x:Name="UserMapsBox" Grid.Row="2" Padding="40, 10" SelectionChanged="MapChosen" VerticalAlignment="Center" FontSize="14" HorizontalAlignment="Center">
+                    <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
+                </ComboBox>
+                <Grid x:Name="MapSyncInfoContainer" Margin="0 10" Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="MapSyncStatus" Grid.Column="0" Text="" TextAlignment="Center"  FontSize="14" VerticalAlignment="Center" Padding="30,10" Margin="10" HorizontalAlignment="Right"/>
+                        <Button x:Name="SyncBtn" Grid.Column="1" Content="Sync" Click="Sync_Clicked" IsEnabled="False" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10" Padding="30,10" FontSize="14"/>
+                </Grid>
+        </Grid>
+            </Border>
+        <Border Background="#D8DFE3" Padding="10" Grid.Row="1">
+                <Grid Name="RunContentGrid" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                    <Border CornerRadius="15" Background="White" VerticalAlignment="Center" Margin="20" Padding="5"  Grid.Row="0" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <Grid Name="sensorsBox" Margin="0 10" Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <CheckBox Grid.Column="1" Content="Laser" Name="chkbxL" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <CheckBox Grid.Column="2" Content="Camera" Name="chkbxC" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <CheckBox Grid.Column="3" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" />
+                            <CheckBox Grid.Column="4" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="Enter Name of the Run:" Margin="25,0" Foreground="Gray" FontStyle="Italic"/>
+                    <Border CornerRadius="15" Background="White" VerticalAlignment="Center" Margin="20" Padding="5"  Grid.Row="1" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <TextBox Name="txtFName" Margin="0 10" Grid.Row="1" Padding="2" Background="Transparent" Style="{StaticResource {x:Static ToolBar.TextBoxStyleKey}}" VerticalContentAlignment="Center"/>
+                    </Border>
+
+                    <Border CornerRadius="15" Background="White" VerticalAlignment="Center" Margin="20" Padding="40 10"  Grid.Row="2" HorizontalAlignment="Center" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <Grid Name="RunControlsGrid" Grid.Row="2" Margin="0 10" HorizontalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="pmStart" Grid.Column="0" ScrollViewer.CanContentScroll="True" Click="OnStart" Background="Transparent" BorderBrush="Transparent" Margin="40 0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="icon_start.png" Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20" />
+                                    <TextBlock Text="Start" Grid.Column="1" HorizontalAlignment="Center" FontSize="20" Foreground="#5CAADE" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+
+                            <Button x:Name="btnStop" Grid.Column="1" ScrollViewer.CanContentScroll="True" Click="OnStop" Background="Transparent" BorderBrush="Transparent" Margin="40 0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="icon_stop.png" Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20" />
+                                    <TextBlock Text="Stop" Grid.Column="1" HorizontalAlignment="Center" FontSize="20" Foreground="#5CAADE" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <Button Content="Restart Service" Grid.Row="3" Name="btnRestart" Margin="0 10" Padding="40,20" Click="btnRestart_Click" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
         </Border>
+        <Border Background="#EDF0F2" Padding="10" Grid.Row="2">
+                <Grid  Name="RunEventsPanel" Grid.Row="2"  Background="#EDF0F2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="3*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="OBSTACLES" HorizontalAlignment="Center" FontWeight="Bold"  FontSize="18" Foreground="#0A6893" VerticalAlignment="Center"/>
+                <Grid Name="ObstacleGrid" Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Name="btnTrippingHazard_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="0" BorderBrush="Transparent">
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                            <Button  Name="btnTrippingHazard" ScrollViewer.CanContentScroll="True" Click="btnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Image Source="icon_tripping_hazard.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
+                                <TextBlock Text="Tripping Hazard" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
+                            </Grid>
+                        </Button>
+                    </Border>
+                    <Border Name="btnBrokenSidewalk_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="1">
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                            <Button  Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="btnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Image Source="icon_broken_sidewalk.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
+                                <TextBlock Text="Broken Sidewalk" Grid.Row="1"  HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
+                            </Grid>
+                        </Button>
+                    </Border>
+                    <Border Name="btnVegetation_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="2">
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                            <Button  Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="btnVegetation_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Image Source="icon_vegetation.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
+                                <TextBlock Text="Vegetation" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
+                            </Grid>
+                        </Button>
+                    </Border>
+                    <Border Name="btnOther_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="3">
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                            <Button  Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Image Source="icon_other.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
+                                <TextBlock Text="Other" Grid.Row="1" HorizontalAlignment="Center" FontSize="20" Foreground="White"/>
+                            </Grid>
+                        </Button>
+                    </Border>
+
+                </Grid>
+                    <Border CornerRadius="15" Background="White" Margin="20" Padding="5"  Grid.Row="2" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <TextBox x:Name="CommentBox" Grid.Row="2" Margin="0 10"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
 
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Collapsed">
             <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Post-Run Controls</TextBlock>

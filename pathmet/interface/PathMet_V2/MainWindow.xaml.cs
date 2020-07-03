@@ -23,7 +23,7 @@ using System.Windows.Forms;
 using System.Windows.Threading;
 using Color = System.Drawing.Color;
 using Point = System.Windows.Point;
-using System.Net.NetworkInformation;
+using System.Windows.Media.Imaging;
 
 namespace PathMet_V2
 {
@@ -97,13 +97,14 @@ namespace PathMet_V2
             //TODO check if we have a map already downloaded/ let user browse downloaded maps
 
             if (!internetConnected()){
-                
+
                 StatusTxt.Text = "No internet connection. Reconnect to get maps.";
                 return;
-                
+
             }
 
-            await AuthenticateWithPortal();
+            bool result = await AuthenticateWithPortal();
+
 
             //code for detecting unsynced maps to be synced now
             //List<String> mapsToSync = Properties.Settings.Default.MapsToSync.Split(',').Where(x => !string.IsNullOrEmpty(x)).ToList();
@@ -119,7 +120,14 @@ namespace PathMet_V2
             //    }
             //}
 
-            GetWebMaps(portal);
+            if (result)
+            {
+                GetWebMaps(portal);
+            }
+            else
+            {
+                new UserMessageBox("Could not authenticate or create portal connection for this user. Try signing in again.", "Could not Authenticate User.", "error").ShowDialog();
+            }
             
         }
 
@@ -225,14 +233,6 @@ namespace PathMet_V2
             // If map has not been synced yet
             if (needMapSync)
             {
-                //show warning message to user
-                //string msg = "Current map has not been synced. Closing now will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system.";
-                //MessageBoxResult result =
-                //  System.Windows.MessageBox.Show(
-                //    msg,
-                //    "Close without Syncing?",
-                //    MessageBoxButton.YesNo,
-                //    MessageBoxImage.Warning);
 
                 bool result = (bool) new UserMessageBox("Current map has not been synced. Closing now will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system.", "Close Without Syncing?", "yesno").ShowDialog();
                 
@@ -452,6 +452,7 @@ namespace PathMet_V2
                 newRunFeature.SetAttributeValue("Completion", "Complete");
                 newRunFeature.SetAttributeValue("Run", runName);
                 newRunFeature.SetAttributeValue("Street_Type", "Sidewalk");
+                newRunFeature.SetAttributeValue("Comment", CommentBox.Text);
 
                 //upload newly created feature to featuretable
                 await runFeatureTable.AddFeatureAsync(newRunFeature);
@@ -488,6 +489,8 @@ namespace PathMet_V2
 
             //clear the last run dist
             lastRunDist = 0.0;
+
+            CommentBox.Text = "";
             showPastRunDist();
 
             //take all tap actions off the map
@@ -622,13 +625,13 @@ namespace PathMet_V2
 
                 // Add a graphics overlay for showing the startPt.
                 startPointOverlay = new GraphicsOverlay();
-                SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.LightGreen, 10);
+                SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.DarkOrange, 20);
                 startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
                 MyMapView.GraphicsOverlays.Add(startPointOverlay);
 
                 // Add a graphics overlay for showing the endPt.
                 endPointOverlay = new GraphicsOverlay();
-                SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.DarkRed, 10);
+                SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.DarkRed, 20);
                 endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
                 MyMapView.GraphicsOverlays.Add(endPointOverlay);
 
@@ -1233,7 +1236,7 @@ namespace PathMet_V2
             PastRunDistContainer.Visibility = Visibility.Hidden;
             pathDrawingControls.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Hidden;
-            RunControlsPanel.Visibility = Visibility.Visible;
+            FullControlPanel.Visibility = Visibility.Visible;
 
             StatusTxt.Text = "Initializing";
 
@@ -1286,7 +1289,7 @@ namespace PathMet_V2
             StatusTxt.Text = "Choose starting point";
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
 
-            RunControlsPanel.Visibility = Visibility.Visible;
+            FullControlPanel.Visibility = Visibility.Visible;
             PostRunControlsPanel.Visibility = Visibility.Hidden;
         }
 
@@ -1301,7 +1304,7 @@ namespace PathMet_V2
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
             StatusTxt.Text = "Choosing points for run path...";
-            RunControlsPanel.Visibility = Visibility.Hidden;
+            FullControlPanel.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Visible;
             submitBtn.IsEnabled = false;
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
@@ -1318,7 +1321,7 @@ namespace PathMet_V2
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
-            RunControlsPanel.Visibility = Visibility.Hidden;
+            FullControlPanel.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Visible;
             submitBtn.IsEnabled = true;
             //StatusTxt.Text = "Post-run: review or submit the completed run.";
@@ -1395,11 +1398,13 @@ namespace PathMet_V2
         private const string WebMapId = "807b21d5a5f44d828a80c1c54ca43bea";
 
         ArcGISPortal portal;
+        String signedInUserName;
+        Uri profilePicUri;
 
         List<PortalItem> availableMaps;
 
         //also gets webMaps
-        private async Task AuthenticateWithPortal()
+        private async Task<bool> AuthenticateWithPortal()
         {
             UpdateUI_waitForLogin();
             try
@@ -1407,15 +1412,37 @@ namespace PathMet_V2
                 // Set up the AuthenticationManager to use OAuth for secure ArcGIS Online requests.
                 SetOAuthInfo();
 
-                await SignIn();
+                bool result = await SignIn();
 
-                // Connect to the portal (ArcGIS Online, for example).
-                portal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
-                
+                if (result) {
+                    // Connect to the portal (ArcGIS Online, for example).
+                    portal = await ArcGISPortal.CreateAsync(new Uri(ServerUrl));
+
+                    if (portal != null)
+                    {
+
+                        signedInUserName = portal.User.UserName;
+                        userName.Text = signedInUserName;
+                        userName.Visibility = Visibility.Visible;
+
+                        profilePicUri = portal.User.ThumbnailUri;
+                        profilePic.Source = new BitmapImage(profilePicUri);
+                        profilePic.Visibility = Visibility.Visible;
+
+                        loginBtn.Content = "Log Out";
+                        loginBtn.Click -= loginBtn_Click;
+                        loginBtn.Click += logoutBtn_Click;
+
+                        return true;
+                    }
+                }
+
+                return false;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
@@ -1470,7 +1497,7 @@ namespace PathMet_V2
             return credential;
         }
 
-        private async Task SignIn()
+        private async Task<bool> SignIn()
         {
             CredentialRequestInfo cri = new CredentialRequestInfo
             {
@@ -1491,10 +1518,13 @@ namespace PathMet_V2
                 var crd = await AuthenticationManager.Current.GetCredentialAsync(cri, false);
 
                 AuthenticationManager.Current.AddCredential(crd);
+                return true;
             }
             catch
             {
-                throw;
+                new UserMessageBox("Sign In Process Failed", "Unable to Sign in", "error").ShowDialog();
+                UpdateUI_waitForLogin();
+                return false;
             }
         }
 
@@ -1506,9 +1536,19 @@ namespace PathMet_V2
             //reset the portal
             portal = null;
 
+            loginBtn.Content = "Log In";
+            loginBtn.Click -= logoutBtn_Click;
+
+            userName.Text = "";
+            userName.Visibility = Visibility.Collapsed;
+
+            profilePic.Source = null;
+            profilePic.Visibility = Visibility.Collapsed;
+
             //clear the maps dropdown
             UserMapsBox.Items.Clear();
 
+            loginBtn.Click += loginBtn_Click;
         }
 
 
@@ -1605,6 +1645,16 @@ namespace PathMet_V2
         private void loginBtn_Click(object sender, RoutedEventArgs e)
         {
             if (!internetConnected()){
+                StatusTxt.Text = "No internet connection. Reconnect to log in.";
+                return;
+            }
+            connectAndGetMaps();
+        }
+
+        private void logoutBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (!internetConnected())
+            {
                 StatusTxt.Text = "No internet connection. Reconnect to log in.";
                 return;
             }
