@@ -452,7 +452,7 @@ namespace PathMet_V2
                 newRunFeature.SetAttributeValue("Completion", "Complete");
                 newRunFeature.SetAttributeValue("Run", runName);
                 newRunFeature.SetAttributeValue("Street_Type", "Sidewalk");
-                newRunFeature.SetAttributeValue("Comment", CommentBox.Text);
+                newRunFeature.SetAttributeValue("Comments", CommentBox.Text);
 
                 //upload newly created feature to featuretable
                 await runFeatureTable.AddFeatureAsync(newRunFeature);
@@ -470,7 +470,7 @@ namespace PathMet_V2
             }
             catch (Exception ex)
             {
-                new UserMessageBox("ex.ToString()", "Error adding feature","error").ShowDialog();
+                new UserMessageBox(ex.Message, "Error adding feature","error").ShowDialog();
             }
 
             resetForNewRun(true);
@@ -812,23 +812,30 @@ namespace PathMet_V2
                 SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
                 _featureLayer.ClearSelection();
 
-                //get closest coordinate 
-                ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, inputPt);
-
-                //get closest coordinate 
-                ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, inputPt);
-
-                //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
-
-                if (nearestVert.Distance > MyMapView.MapScale * vertexSnapDistance)
+                if (SelectionResult.Count() > 0)
                 {
-                    snappedPoint = nearestCoord.Coordinate;
-                    inputSnapped = true;
+                    //get closest coordinate 
+                    ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                    //get closest coordinate 
+                    ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                    //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
+
+                    if (nearestVert.Distance > MyMapView.MapScale * vertexSnapDistance)
+                    {
+                        snappedPoint = nearestCoord.Coordinate;
+                        inputSnapped = true;
+                    }
+                    else
+                    {
+                        snappedPoint = nearestVert.Coordinate;
+                        inputSnapped = true;
+                    }
                 }
                 else
                 {
-                    snappedPoint = nearestVert.Coordinate;
-                    inputSnapped = true;
+                    return null;
                 }
 
             }
