@@ -1455,7 +1455,8 @@ namespace PathMet_V2
                         userName.Visibility = Visibility.Visible;
 
                         profilePicUri = portal.User.ThumbnailUri;
-                        profilePic.Source = new BitmapImage(profilePicUri);
+                        
+                        profilePic.Source = profilePicUri != null ? new BitmapImage(profilePicUri) : null;
                         profilePic.Visibility = Visibility.Visible;
 
                         loginBtn.Content = "Log Out";
