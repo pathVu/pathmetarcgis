@@ -28,8 +28,10 @@ namespace PathMet_V2
         {
             InitializeComponent();
 
-            this.MinHeight = (SystemParameters.PrimaryScreenHeight * 0.25);
-            this.MinWidth = (SystemParameters.PrimaryScreenWidth * 0.25);
+            this.MinHeight = (SystemParameters.PrimaryScreenHeight * 0.4);
+            this.MinWidth = (SystemParameters.PrimaryScreenWidth * 0.4);
+            this.Height = 500;
+            this.Width = 1000;
             this.Title = caption;
             messageBox.Text = msg;
 
@@ -44,8 +46,7 @@ namespace PathMet_V2
             {
                 case "error":
                     Button errbtn = basicBtn;
-                    this.BorderBrush = Brushes.Crimson;
-                    this.BorderThickness = new Thickness(5);
+                    panel_Container.Background = System.Windows.Media.Brushes.LightCoral;
                     errbtn.Content = "OK";
                     errbtn.Click += closeWindow;
                     buttonsPanel.Children.Add(errbtn);
@@ -58,6 +59,7 @@ namespace PathMet_V2
 
                     Button noBtn = basicBtn;
                     noBtn.Content = "No";
+                    noBtn.Click -= yesResponse;
                     noBtn.Click += noResponse;
                     buttonsPanel.Children.Add(noBtn);
                     break;

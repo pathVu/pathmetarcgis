@@ -7,15 +7,16 @@
         mc:Ignorable="d"
         Title="UserMessageBox"
         WindowStyle="SingleBorderWindow"
-        WindowStartupLocation="CenterScreen">
-    <Border Margin="10">
+        WindowStartupLocation="CenterScreen" 
+        HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border>
         <Grid x:Name="contentGrid" Margin="0,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="messageBox" Text="" Grid.Row="0" Margin="20" FontSize="18" HorizontalAlignment="Center"  TextWrapping="Wrap" VerticalAlignment="Center"/>
-            <Border Grid.Row="1" Background="#FFCDCDCD" >
+            <TextBlock x:Name="messageBox" Text="" Grid.Row="0" Margin="20" FontSize="18" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            <Border x:Name="panel_Container" Grid.Row="1" Background="#FFCDCDCD" >
                 <StackPanel x:Name="buttonsPanel" Grid.Row="1" Margin="10" Orientation="Horizontal" HorizontalAlignment="Center">
                     
                 </StackPanel>

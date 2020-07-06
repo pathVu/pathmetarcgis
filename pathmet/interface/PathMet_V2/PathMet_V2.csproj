@@ -58,6 +58,9 @@
     <StartupObject>
     </StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>pathmet_icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -84,7 +87,6 @@
     <Compile Include="ReviewImagesWindow.xaml.cs">
       <DependentUpon>ReviewImagesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SketchOnMap.cs" />
     <Compile Include="Sensors.cs" />
     <Compile Include="SerialSensors.cs" />
     <Compile Include="UserMessageBox.xaml.cs">
@@ -164,6 +166,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="pathmet_icon.ico" />
+    <Resource Include="pathvu_mark_orange_wblue_rgb_1024_6qp_icon.ico" />
+    <Resource Include="pvbluemark_ykH_icon.ico" />
     <Resource Include="icon_broken_sidewalk.png" />
     <Content Include="icon_broken_sidewalk.svg" />
     <Resource Include="icon_other.png" />

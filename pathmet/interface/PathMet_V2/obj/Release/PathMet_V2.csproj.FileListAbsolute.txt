@@ -1269,3 +1269,4 @@ R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\ob
 R:\DocumentsHDD\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\UserMessageBox.baml
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\UserMessageBox.g.cs
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\UserMessageBox.baml
+C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache

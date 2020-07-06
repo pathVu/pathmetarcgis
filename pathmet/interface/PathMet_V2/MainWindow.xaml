@@ -9,6 +9,7 @@
         Title="MainWindow"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
+        Icon="pathmet_icon.ico"
         Closing="Window_Closing">
 
 
@@ -16,24 +17,58 @@
     <!-- Overall panel grid-->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*"/>
-            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <esri:MapView x:Name="MyMapView" Grid.Column="0"/>
-        <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="5,3,5,0" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
-        <Button x:Name="downloadMapBtn" Grid.Column="0" Content="Take Map Offline" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,25"  Padding="5" FontSize="16" Click="downloadOfflineMap" Visibility="Collapsed" />
-        <StackPanel x:Name="PastRunDistContainer" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Hidden">
-            <TextBlock x:Name="pastRunDistLabel" Grid.Column="0" Text="Past Run:" Margin="2,1" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
-            <TextBlock x:Name="pastRunDistTxt" Grid.Column="0" Margin="5,3,5,0" VerticalAlignment="Top"  FontSize="16" Padding="5,0" UseLayoutRounding="False"/>
-        </StackPanel>
+        <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="0" VerticalAlignment="Top" FontSize="20" Padding="5 2" UseLayoutRounding="False"/>
+        <Border CornerRadius="10" Background="#FF5CAADE" VerticalAlignment="Bottom" Margin="5 5 5 25" HorizontalAlignment="Center" >
+            <Border.Effect>
+                <DropShadowEffect Direction="225" Opacity="0.6" BlurRadius="15" ShadowDepth="5"/>
+            </Border.Effect>
+            <Button x:Name="downloadMapBtn" Background="Transparent" Foreground="White" BorderBrush="Transparent" BorderThickness="0" Grid.Column="0" Content="Take Map Offline" VerticalAlignment="Bottom" Padding="20 10" FontSize="20" Click="downloadOfflineMap" Visibility="Collapsed" />
+        </Border>
 
         <!-- Drawing edit and restart buttons-->
-        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Collapsed" Orientation="Horizontal" Grid.Column="0">
-            <Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="14" Visibility="Collapsed" />
-            <Button Content="Undo" x:Name="undoBtn" Margin="5" Padding="5" FontSize="14" Click="UndoLastVertex" />
+        <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,25" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
+            <!--Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="16" Visibility="Collapsed" />-->
+            <Border x:Name="drawnLineStatusIndicator" BorderBrush="LightGreen" BorderThickness="4"  CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
+                <Border.Effect>
+                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="3*"/>
+                    </Grid.RowDefinitions>
+                    <Border BorderBrush="Black" BorderThickness="0 0 1 2" Grid.Row="0" Grid.Column="0">
+                        <TextBlock Text="Run Data:" Padding="5" FontSize="18"/>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1 0 0 2" Grid.Row="0" Grid.Column="1">
+                        <TextBlock  Text="Drawn Path:" Padding="5" FontSize="18"/>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="0 0 1 0 " Grid.Row="1" Grid.Column="0">
+                        <TextBlock x:Name="pastRunDistTxt" Grid.Row="1" Grid.Column="0" Padding="5" FontSize="18"/>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1 0 0 0 " Grid.Row="1" Grid.Column="1">
+                        <TextBlock x:Name="drawnRunDistTxt" Grid.Row="1" Grid.Column="1" Padding="5" FontSize="18"/>
+                    </Border>
+
+                </Grid>
+            </Border>
+            <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
+                <Border.Effect>
+                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                </Border.Effect>
+                <Button Content="Undo" x:Name="undoBtn" Padding="10 5" FontSize="18" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Click="UndoLastVertex"/>
+            </Border>
         </StackPanel>
-        <Grid x:Name="busyIndicator" Background="#807f7f7f" Visibility="Collapsed" Grid.Column="0">
+        <Grid x:Name="progressIndicator" Background="#B2434343" Visibility="Collapsed" Grid.Column="0">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -41,22 +76,26 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10"
-                           Foreground="White" FontSize="18">
+                           Foreground="White" FontSize="20">
                     <Run x:Name="busyJobText" Text="Downloading offline map... "></Run>
                     <Run x:Name="Percentage" Text=""></Run>
                 </TextBlock>
                 <ProgressBar x:Name="progressBar"
                              Grid.Row="1" 
                              Minimum="0" Maximum="100"
-                             IsEnabled="True"
-                             HorizontalAlignment="Center" VerticalAlignment="Center" 
-                             Width="100" Height="10" Margin="0,0,0,10"/>
+                             IsEnabled="True" VerticalAlignment="Center" 
+                             Height="10" Margin="0,0,0,10"
+                             Foreground="LightGreen"
+                             Background="#99000000"
+                             BorderThickness="0"
+                             BorderBrush="Transparent"/>
                 <Button x:Name="CancelJobButton" 
                         Grid.Row="3"
                         Content="Cancel" 
                         Click="CancelJobButton_Click" 
                         HorizontalAlignment="Center" 
-                        Width="100"/>
+                        Padding="20 5"
+                        FontSize="18"/>
             </Grid>
         </Grid>
 
@@ -71,41 +110,55 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="0">
-                        <TextBlock x:Name="userName" Text="" Visibility="Collapsed" VerticalAlignment="Center" FontSize="14"/>
-                        <Image x:Name="profilePic" Visibility="Collapsed" Margin="10"/>
-                        <Button x:Name="loginBtn" Content="Login" Padding="20 0" Click="loginBtn_Click" Margin="10 0" FontSize="14"/>
+                        <TextBlock x:Name="userName" Text="" Visibility="Collapsed" VerticalAlignment="Center" FontSize="18"/>
+                        <Image x:Name="profilePic" Visibility="Visible" Margin="5 0"/>
+                        <Border Background="#FF5CAADE" CornerRadius="10" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
+                            <Border.Effect>
+                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                            </Border.Effect>
+                            <Button x:Name="loginBtn" Content="Login" Padding="10 5" BorderBrush="Transparent" BorderThickness="0" Click="loginBtn_Click" Foreground="White"  FontSize="18" Background="Transparent" VerticalAlignment="Center"/>
+                        </Border>
                     </StackPanel>
 
-                    <TextBlock Name="PathMetTitle" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
+                    <TextBlock Name="PathMetTitle" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
                         <Run Foreground="#0A6893" Text="WELCOME TO"/>
                         <Run Foreground="#0A6893" FontWeight="Bold" Text="PATHMET"/>
                     </TextBlock>
-                    <ComboBox x:Name="UserMapsBox" Grid.Row="2" Padding="40, 10" SelectionChanged="MapChosen" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Center">
-                        <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
-                    </ComboBox>
-                    <Grid x:Name="MapSyncInfoContainer" Margin="0 2" Grid.Row="3">
+                    <Border Grid.Row="2">
+                    <Grid x:Name="MapSyncInfoContainer" Grid.Row="2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5*"/>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="MapSyncStatus" Grid.Column="0" Text="" TextAlignment="Center"  FontSize="14" VerticalAlignment="Center" Padding="30 0"  Margin="10 0" HorizontalAlignment="Right"/>
-                        <Button x:Name="SyncBtn" Grid.Column="1" Content="Sync" Click="Sync_Clicked" IsEnabled="False" HorizontalAlignment="Left" Margin="10 0" VerticalAlignment="Stretch" Padding="30 0"  FontSize="14"/>
-                    </Grid>
+                        <ComboBox x:Name="UserMapsBox" Grid.Column="0" SelectionChanged="MapChosen" Padding="5" FontSize="20" Margin="0 0 5 0" VerticalAlignment="Center">
+                            <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
+                        </ComboBox>
+                            <TextBlock x:Name="MapSyncStatus" Grid.Column="1" Text="" TextAlignment="Center"  FontSize="20" Padding="5"  Margin="5 0" VerticalAlignment="Center"/>
+                            <Border Background="#FF5CAADE" CornerRadius="10" Grid.Column="2" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
+                                <Border.Effect>
+                                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                                </Border.Effect>
+                                <Button x:Name="SyncBtn" Grid.Column="2" Content="Sync" Click="Sync_Clicked" IsEnabled="False" Foreground="White" Padding="5"  VerticalAlignment="Center"  FontSize="20" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" HorizontalAlignment="Stretch">
+
+                                </Button>
+                            </Border>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
-            <Border Background="#D8DFE3" Padding="10 0" Grid.Row="1">
+            <Border Background="#D8DFE3" Padding="10" Grid.Row="1">
                 <Grid Name="RunContentGrid" Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
-                    <Border CornerRadius="15" Background="White" Margin="10" Grid.Row="0" >
+                    <Border CornerRadius="10" Background="White" Grid.Row="0" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
@@ -117,29 +170,29 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
-                            <CheckBox Grid.Column="1" Content="Laser" Name="chkbxL" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
-                            <CheckBox Grid.Column="2" Content="Camera" Name="chkbxC" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
-                            <CheckBox Grid.Column="3" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="16" />
-                            <CheckBox Grid.Column="4" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="16"/>
+                            <CheckBox Grid.Column="0" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="1" Content="Laser" Name="chkbxL" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="2" Content="Camera" Name="chkbxC" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="3" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="20" />
+                            <CheckBox Grid.Column="4" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="20"/>
                         </Grid>
                     </Border>
                     <Grid Grid.Row="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="3*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock  Text="Enter Name of the Run:" Margin="25,0" Foreground="Gray" FontStyle="Italic" FontSize="12" />
-                        <Border CornerRadius="15" Background="White" Margin="2" Padding="5"  Grid.Row="1" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock  Text="Name of the Run:" Foreground="Gray" FontStyle="Italic" FontSize="16" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        <Border CornerRadius="10" Background="White" Margin="2" BorderBrush="Transparent" BorderThickness="0"  Grid.Column="1" VerticalAlignment="Center" >
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <TextBox Name="txtFName" Margin="5"  Padding="2" Background="Transparent" Style="{StaticResource {x:Static ToolBar.TextBoxStyleKey}}" VerticalContentAlignment="Center" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <TextBox Name="txtFName" Padding="5" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Style="{StaticResource {x:Static ToolBar.TextBoxStyleKey}}" VerticalContentAlignment="Center" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                         </Border>
                     </Grid>
                     
 
-                    <Border CornerRadius="15" Background="White" VerticalAlignment="Stretch" Margin="10" Padding="5" Grid.Row="2" HorizontalAlignment="Center" >
+                    <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" Padding="5" Grid.Row="2" HorizontalAlignment="Center" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
@@ -172,17 +225,22 @@
                             </Button>
                         </Grid>
                     </Border>
-                    <Button Content="Restart Service" Grid.Row="3" Name="btnRestart" Margin="0 5" Padding="40,5" Click="btnRestart_Click" HorizontalAlignment="Center" FontSize="16"/>
+                    <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="0 5"  Grid.Row="3" HorizontalAlignment="Center" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <Button Content="Reset pathMet connection" Padding="10 5" Grid.Row="3" Name="btnRetryPmConnect" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Click="retryPmConnection_Click" HorizontalAlignment="Center" FontSize="20" VerticalAlignment="Center"/>
+                    </Border>
                 </Grid>
             </Border>
-            <Border Background="#EDF0F2" Padding="10 0" Grid.Row="2">
+            <Border Background="#EDF0F2" Padding="10" Grid.Row="2">
                 <Grid  Name="RunEventsPanel" Grid.Row="2"  Background="#EDF0F2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="3*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="OBSTACLES" HorizontalAlignment="Center" FontWeight="Bold"  FontSize="18" Foreground="#0A6893" VerticalAlignment="Center"/>
+                    <TextBlock Text="OBSTACLES" HorizontalAlignment="Center" FontWeight="Bold"  FontSize="20" Foreground="#0A6893" VerticalAlignment="Center"/>
                     <Grid Name="ObstacleGrid" Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -191,7 +249,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Name="btnTrippingHazard_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="0" BorderBrush="Transparent">
+                        <Border Name="btnTrippingHazard_Container" Background="#FF5CAADE" CornerRadius="10" Margin="0,0,10,0" Grid.Column="0" BorderBrush="Transparent">
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
@@ -202,11 +260,11 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Image Source="icon_tripping_hazard.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Tripping Hazard" Grid.Row="1" HorizontalAlignment="Center" FontSize="16" Foreground="White"/>
+                                    <TextBlock Text="Tripping Hazard" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
                                 </Grid>
                             </Button>
                         </Border>
-                        <Border Name="btnBrokenSidewalk_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="1">
+                        <Border Name="btnBrokenSidewalk_Container" Background="#FF5CAADE" CornerRadius="10" Margin="0 0 5 0" Grid.Column="1">
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
@@ -217,11 +275,11 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Image Source="icon_broken_sidewalk.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Broken Sidewalk" Grid.Row="1"  HorizontalAlignment="Center" FontSize="16" Foreground="White"/>
+                                    <TextBlock Text="Broken Sidewalk" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
                                 </Grid>
                             </Button>
                         </Border>
-                        <Border Name="btnVegetation_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="2">
+                        <Border Name="btnVegetation_Container" Background="#FF5CAADE" CornerRadius="10" Margin="5 0 0 0" Grid.Column="2">
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
@@ -232,48 +290,55 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Image Source="icon_vegetation.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Vegetation" Grid.Row="1" HorizontalAlignment="Center" FontSize="16" Foreground="White"/>
+                                    <TextBlock Text="Vegetation" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
                                 </Grid>
                             </Button>
                         </Border>
-                        <Border Name="btnOther_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0" Grid.Column="3">
+                        <Border Name="btnOther_Container" Background="#FF5CAADE" CornerRadius="10" Margin="10 0 0 0" Grid.Column="3">
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button  Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Button  Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" HorizontalAlignment="Stretch">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="3*"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Image Source="icon_other.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Other" Grid.Row="1" HorizontalAlignment="Center" FontSize="16" Foreground="White"/>
+                                    <TextBlock Text="Other" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
                                 </Grid>
                             </Button>
                         </Border>
+                    </Grid>
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="5*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Run Comments:" Foreground="Gray" FontStyle="Italic" FontSize="16"/>
+                        <Border CornerRadius="10" Background="White" Margin="0 2 0 0" Padding="5"  Grid.Row="1" >
+                            <Border.Effect>
+                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                            </Border.Effect>
+                            <TextBox x:Name="CommentBox" Grid.Column="1"  BorderThickness="0"/>
+                        </Border>
 
                     </Grid>
-                    <Border CornerRadius="15" Background="White" Margin="20" Padding="5"  Grid.Row="2" >
-                        <Border.Effect>
-                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
-                        </Border.Effect>
-                        <TextBox x:Name="CommentBox" Grid.Row="2" Margin="0 10" BorderThickness="0"/>
-                    </Border>
                 </Grid>
             </Border>
         </Grid>
 
         <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Collapsed">
-            <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="16">Post-Run Controls</TextBlock>
+            <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="20">Post-Run Controls</TextBlock>
             <Grid Margin="10 10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="Review Images" x:Name="reviewBtn" Grid.Column="0" Margin="0,10,10,10" Padding="5,15" Click="reviewBtn_Click" FontSize="18" />
-                <Button Content="Discard Run" x:Name="discardBtn" Grid.Column="1" Margin="10,10,0,10" Padding="5,15" Click="onDiscard" FontSize="18" />
+                <Button Content="Review Images" x:Name="reviewBtn" Grid.Column="0" Margin="0,10,10,10" Padding="5,15" Click="reviewBtn_Click" FontSize="20" />
+                <Button Content="Discard Run" x:Name="discardBtn" Grid.Column="1" Margin="10,10,0,10" Padding="5,15" Click="onDiscard" FontSize="20" />
             </Grid>
-            <Button Content="Submit Run" x:Name="submitBtn" Margin="10" Padding="15" Click="onSubmit" FontSize="18" />
+            <Button Content="Submit Run" x:Name="submitBtn" Margin="10" Padding="15" Click="onSubmit" FontSize="20" />
         </StackPanel>
     </Grid>
 </Window>

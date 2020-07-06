@@ -24,6 +24,7 @@ using System.Windows.Threading;
 using Color = System.Drawing.Color;
 using Point = System.Windows.Point;
 using System.Windows.Media.Imaging;
+using System.Data.SqlTypes;
 
 namespace PathMet_V2
 {
@@ -52,12 +53,11 @@ namespace PathMet_V2
             //at this point, we've tried to automatically sign in the user.
             //from here, the user will have to hit "Login" if some part of the process didn't work.
 
-            //start sync timer
-            timeChecks = new List<DateTime>();
-            timeChecks.Add(lastSubmitTime);
-            timeChecks.Add(lastStartTime);
-            timeChecks.Add(lastInternetLostConnectionTime);
-            timeChecks.Add(lastSyncTime);
+            lastSubmitTime = DateTime.UtcNow;
+            lastInternetLostConnectionTime = DateTime.UtcNow;
+            lastSyncTime = DateTime.UtcNow;
+            lastStartTime = DateTime.UtcNow;
+
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1)};
             timer.Tick += TimedSync;
             timer.Start();
@@ -68,7 +68,6 @@ namespace PathMet_V2
         DateTime lastStartTime;
         DateTime lastInternetLostConnectionTime;
         DateTime lastSyncTime;
-        List<DateTime> timeChecks;
 
         private void TimedSync(object sender, EventArgs e)
         {
@@ -80,16 +79,19 @@ namespace PathMet_V2
                 return;
             }
 
-            foreach (DateTime timedEvent in timeChecks)
+
+            if (lastInternetLostConnectionTime.AddMinutes(syncWaitPeriod) > now || lastStartTime.AddMinutes(syncWaitPeriod) > now)
             {
-                if (timedEvent.AddMinutes(syncWaitPeriod) > now)
-                {
-                    return;
-                }
+                return;
+            }
+
+            if(lastSubmitTime.AddMinutes(syncWaitPeriod) > now || lastSyncTime.AddMinutes(syncWaitPeriod) > now)
+            {
+                return;
             }
 
             //if we've made it through all the checks
-            SyncOfflineMap(MyMapView.Map);
+            SyncOfflineMap(MyMapView.Map, true);
         }
 
         private async void connectAndGetMaps()
@@ -99,6 +101,7 @@ namespace PathMet_V2
             if (!internetConnected()){
 
                 StatusTxt.Text = "No internet connection. Reconnect to get maps.";
+                StatusTxt.Background = System.Windows.Media.Brushes.Red;
                 return;
 
             }
@@ -142,6 +145,7 @@ namespace PathMet_V2
                     this.Dispatcher.Invoke(() =>
                     {
                         StatusTxt.Text = "Map Loaded! Take Map Offline to start making runs.";
+                        StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
                         downloadMapBtn.Visibility = Visibility.Visible;
                     });
                     /*this.Dispatcher.Invoke(() =>
@@ -155,6 +159,7 @@ namespace PathMet_V2
                     this.Dispatcher.Invoke(() =>
                     {
                         StatusTxt.Text = "Map Failed to Load";
+                        StatusTxt.Background = System.Windows.Media.Brushes.Red;
                     });
                     UserMapsBox.SelectedIndex = 0;
                     break;
@@ -163,6 +168,7 @@ namespace PathMet_V2
                     this.Dispatcher.Invoke(() =>
                     {
                         StatusTxt.Text = "Map Loading...";
+                        StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
                     });
                     break;
 
@@ -170,6 +176,7 @@ namespace PathMet_V2
                     this.Dispatcher.Invoke(() =>
                     {
                         StatusTxt.Text = "Choose a Map";
+                        StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
                     });
                     break;
             }
@@ -267,6 +274,8 @@ namespace PathMet_V2
         private void FileExists()
         {
             new UserMessageBox("That run exists. Please choose a different name.", "File Exists").ShowDialog();
+            txtFName.IsEnabled = true;
+
         }
 
         private void Summary(double laser, double encoder)
@@ -406,7 +415,7 @@ namespace PathMet_V2
             txtFName.IsEnabled = false;
             btnStop.IsEnabled = false;
             pmStart.IsEnabled = false;
-            btnRestart.IsEnabled = false;
+            btnRetryPmConnect.IsEnabled = false;
 
 
             string name = txtFName.Text;
@@ -421,7 +430,7 @@ namespace PathMet_V2
             lastStartTime = DateTime.UtcNow;
         }
 
-        private void btnRestart_Click(object sender, EventArgs e)
+        private void retryPmConnection_Click(object sender, EventArgs e)
         {
             if (sensors != null)
             {
@@ -685,6 +694,7 @@ namespace PathMet_V2
             try
             {
                 StatusTxt.Text = "Choose a line to edit";
+                StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
                 // Allow the user to select a graphic
                 Graphic editGraphic = await ChooseGraphicAsync();
                 if (editGraphic == null) { return; }
@@ -863,7 +873,6 @@ namespace PathMet_V2
 
 
             //show length of past run
-            PastRunDistContainer.Visibility = Visibility.Visible;
             pathDrawingControls.Visibility = Visibility.Visible;
             
 
@@ -919,15 +928,21 @@ namespace PathMet_V2
 
             if (drawnPathMatchesRunData(lineLength))
             {
-                StatusTxt.Text = "Drawn length: " + lineLength + "ft matches last run data.";
+                StatusTxt.Text = "Drawn length matches last run data.";
                 StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
+                drawnRunDistTxt.Text = lineLength + "ft";
+                drawnLineStatusIndicator.BorderBrush = System.Windows.Media.Brushes.LightGreen;
+
                 UpdateUI_PostRun();
             }
             else
             {
                 UpdateUI_waitForEndPt();
-                StatusTxt.Text = "Drawn length: " + lineLength + "ft does not match last run data.";
+                StatusTxt.Text = "Drawn length does not match last run data.";
+                drawnRunDistTxt.Text = lineLength + "ft";
                 StatusTxt.Background = System.Windows.Media.Brushes.Red;
+                drawnLineStatusIndicator.BorderBrush = System.Windows.Media.Brushes.Red;
+
             }
         }
 
@@ -991,12 +1006,13 @@ namespace PathMet_V2
             if (!internetConnected())
             {
                 StatusTxt.Text = "No internet connection. Reconnect to get maps.";
+                StatusTxt.Background = System.Windows.Media.Brushes.Red;
                 return;
             }
 
             try
             {
-                busyIndicator.Visibility = Visibility.Visible;
+                progressIndicator.Visibility = Visibility.Visible;
                 busyJobText.Text = "Downloading offline map... ";
 
                 //area of interest set to the extent of the current map
@@ -1034,7 +1050,7 @@ namespace PathMet_V2
                 if (_generateOfflineMapJob.Status != JobStatus.Succeeded)
                 {
                     new UserMessageBox("Generate offline map package failed.", "Job Status", "error").ShowDialog();
-                    busyIndicator.Visibility = Visibility.Collapsed;
+                    progressIndicator.Visibility = Visibility.Collapsed;
                 }
 
                 // Check for errors with individual layers.
@@ -1049,7 +1065,7 @@ namespace PathMet_V2
 
                     // Show layer errors.
                     string errorText = errorBuilder.ToString();
-                    new UserMessageBox(errorText, "Layer errors", "error").ShowDialog();
+                    new UserMessageBox(errorText, "Error Loading One or More Layers", "error").ShowDialog();
                 }
 
                 // Display the offline map.
@@ -1059,10 +1075,12 @@ namespace PathMet_V2
                 MyMapView.SetViewpoint(new Viewpoint(areaOfInterest));
 
                 // Hide the "Take map offline" button.
-                downloadMapBtn.Visibility = Visibility.Hidden;
+                downloadMapBtn.Visibility = Visibility.Collapsed;
+
 
                 // Show a message that the map is offline.
                 StatusTxt.Text = "Map has been taken offline.";
+                StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
 
                 MyMapView.LocationDisplay.IsEnabled = false;
 
@@ -1092,20 +1110,20 @@ namespace PathMet_V2
             finally
             {
                 // Hide the activity indicator when the job is done.
-                busyIndicator.Visibility = Visibility.Collapsed;
+                progressIndicator.Visibility = Visibility.Collapsed;
             }
 
         }
 
         private bool needMapSync;
         private string mapIdToSync;
-        private async void SyncOfflineMap(Map map)
+        private async void SyncOfflineMap(Map map, bool isTimed)
         {
             if (needMapSync)
             {
                 try
                 {
-                    busyIndicator.Visibility = Visibility.Visible;
+                    progressIndicator.Visibility = Visibility.Visible;
                     busyJobText.Text = "Syncing offline map... ";
 
                     var task = await OfflineMapSyncTask.CreateAsync(map);
@@ -1131,7 +1149,7 @@ namespace PathMet_V2
                     else
                     {
                         new UserMessageBox("Offline map sync failed. Job Status: " + job.Status.ToString(), "Map Sync Failed", "error").ShowDialog();
-                        busyIndicator.Visibility = Visibility.Collapsed;
+                        progressIndicator.Visibility = Visibility.Collapsed;
                     }
 
                     if (results.HasErrors)
@@ -1141,6 +1159,7 @@ namespace PathMet_V2
 
                     // Show a message that the map is offline.
                     StatusTxt.Text = "Offline Map has been synced.";
+                    StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
                 }
                 catch (TaskCanceledException)
                 {
@@ -1155,12 +1174,15 @@ namespace PathMet_V2
                 finally
                 {
                     // Hide the activity indicator when the job is done.
-                    busyIndicator.Visibility = Visibility.Collapsed;
+                    progressIndicator.Visibility = Visibility.Collapsed;
                 }
             }
             else
             {
-                new UserMessageBox("Map Does not need syncing.", "Sync Not Needed").ShowDialog();
+                if (!isTimed)
+                {
+                    new UserMessageBox("Map Does not need syncing.", "Sync Not Needed").ShowDialog();
+                }
             }
         }
 
@@ -1234,18 +1256,18 @@ namespace PathMet_V2
 
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = true;
+            btnRetryPmConnect.IsEnabled = true;
             txtFName.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
-            PastRunDistContainer.Visibility = Visibility.Hidden;
             pathDrawingControls.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Hidden;
             FullControlPanel.Visibility = Visibility.Visible;
 
             StatusTxt.Text = "Initializing";
+            StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
 
             chkbxL.Background = System.Windows.Media.Brushes.Transparent;
             chkbxL.IsChecked = false;
@@ -1260,11 +1282,13 @@ namespace PathMet_V2
         private void UpdateUI_waitForLogin()
         {
             StatusTxt.Text = "Log In to Load a Map";
+            StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
         }
 
         private void UpdateUI_waitForMapChosen()
         {
             StatusTxt.Text = "Choose a map from the dropdown";
+            StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
             UserMapsBox.IsEnabled = true;
         }
 
@@ -1281,7 +1305,7 @@ namespace PathMet_V2
             pathDrawingControls.Visibility = Visibility.Hidden;
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = true;
+            btnRetryPmConnect.IsEnabled = true;
 
             //fill the name of the run with a default name and allow user to change it
             txtFName.IsEnabled = true;
@@ -1304,7 +1328,7 @@ namespace PathMet_V2
         {
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = false;
+            btnRetryPmConnect.IsEnabled = false;
             txtFName.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
@@ -1322,7 +1346,7 @@ namespace PathMet_V2
         {
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
-            btnRestart.IsEnabled = false;
+            btnRetryPmConnect.IsEnabled = false;
             txtFName.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
@@ -1401,8 +1425,6 @@ namespace PathMet_V2
 
         // - A URL for redirecting after a successful authorization (this must be a URL configured with the app).
         private const string OAuthRedirectUrl = @"my-ags-app://auth";
-        // - The ID for a web map item hosted on the server (the ID below is for a traffic map of Paris).
-        private const string WebMapId = "807b21d5a5f44d828a80c1c54ca43bea";
 
         ArcGISPortal portal;
         String signedInUserName;
@@ -1565,6 +1587,7 @@ namespace PathMet_V2
             if (!internetConnected())
             {
                 StatusTxt.Text = "No internet connection. Reconnect to get maps.";
+                StatusTxt.Background = System.Windows.Media.Brushes.Yellow;
                 return;
             }
             
@@ -1608,6 +1631,7 @@ namespace PathMet_V2
                 else
                 {
                     StatusTxt.Text = "No maps found for user. Log in to a different account or try again.";
+                    StatusTxt.Background = System.Windows.Media.Brushes.Yellow;
                 }
             }
             catch
@@ -1653,6 +1677,7 @@ namespace PathMet_V2
         {
             if (!internetConnected()){
                 StatusTxt.Text = "No internet connection. Reconnect to log in.";
+                StatusTxt.Background = System.Windows.Media.Brushes.Red;
                 return;
             }
             connectAndGetMaps();
@@ -1660,10 +1685,22 @@ namespace PathMet_V2
 
         private void logoutBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (!internetConnected())
+            if (needMapSync)
             {
-                StatusTxt.Text = "No internet connection. Reconnect to log in.";
-                return;
+
+                bool result = (bool)new UserMessageBox("Current map has not been synced. Logging out will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system.", "Log out Without Syncing?", "yesno").ShowDialog();
+
+                if (result)
+                {
+                    // If user doesn't want to log out, just return
+                    return;
+                }
+                else
+                {
+                    //user is okay with logging out. Save info about the unsynced map to User Properties.
+                    Properties.Settings.Default.MapsToSync += ("," + mapIdToSync);
+                    Properties.Settings.Default.Save();
+                }
             }
 
             SignOut();
@@ -1672,10 +1709,9 @@ namespace PathMet_V2
 
         private void Sync_Clicked(object sender, RoutedEventArgs e)
         {
-            SyncOfflineMap(MyMapView.Map);
+            SyncOfflineMap(MyMapView.Map, false);
         }
 
-        
     }
 
 }

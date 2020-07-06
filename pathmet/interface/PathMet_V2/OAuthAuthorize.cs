@@ -76,8 +76,8 @@ namespace PathMet_V2
             {
                 Content = authBrowser,
                 Title = "Log In to ArcGIS",
-                //Height = 420,
-                //Width = 350,
+                Height = (SystemParameters.PrimaryScreenHeight * 0.75),
+                Width = (SystemParameters.PrimaryScreenWidth * 0.75),
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
 
