@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:PathMet_V2"
         mc:Ignorable="d"
         Title="ReviewImagesWindow" Height="450" Width="800">
-	<Grid Margin="0">
+
+    <Grid Margin="0" Background="#D8DFE3">
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
@@ -17,12 +18,21 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="7*"/>
 			</Grid.RowDefinitions>
-			<ComboBox x:Name="imgNumberBox" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20,5" FontSize="20" Width="70">
-			</ComboBox>
-			<Button x:Name="prevBtn" Grid.Column="0" Grid.Row="1" FontFamily="Marlett" FontSize="50" Content="3" Margin="0"/>
-			<Image x:Name="currentImg" Grid.Column="1" Grid.Row="1" Margin="20"/>
-			<Button x:Name="nextBtn" Grid.Column="2" Grid.Row="1" FontFamily="Marlett" FontSize="50" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Content="4" Margin="0" Click="nextBtn_Click"/>
-		</Grid>
+			<ComboBox x:Name="imgNumberBox" Grid.Row="0" Grid.Column="1" Background="Transparent" FontSize="20" Width="100" BorderBrush="{x:Null}" BorderThickness="0"/>
+            <Border CornerRadius="10" Background="White" Margin="5" Grid.Column="0" Grid.Row="1" >
+                <Border.Effect>
+                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                </Border.Effect>
+                <Button x:Name="prevBtn" Foreground="DarkGray" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"  FontFamily="Marlett" FontSize="50" Content="3" Margin="0" Click="prevBtn_Click"/>
+            </Border>
+            <Image x:Name="currentImg" Grid.Column="1"  Margin="20"/>
+            <Border CornerRadius="10" Background="White" Margin="5"  Grid.Column="2" Grid.Row="1" >
+                <Border.Effect>
+                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                </Border.Effect>
+                <Button x:Name="nextBtn"  Foreground="DarkGray" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"  FontFamily="Marlett" FontSize="50" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Content="4" Margin="0" Click="nextBtn_Click"/>
+            </Border>
+        </Grid>
 
 	</Grid>
 </Window>

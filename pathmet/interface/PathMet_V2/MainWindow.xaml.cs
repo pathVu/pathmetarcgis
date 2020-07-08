@@ -53,14 +53,8 @@ namespace PathMet_V2
             //at this point, we've tried to automatically sign in the user.
             //from here, the user will have to hit "Login" if some part of the process didn't work.
 
-            lastSubmitTime = DateTime.UtcNow;
-            lastInternetLostConnectionTime = DateTime.UtcNow;
-            lastSyncTime = DateTime.UtcNow;
-            lastStartTime = DateTime.UtcNow;
-
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1)};
-            timer.Tick += TimedSync;
-            timer.Start();
+            startSyncTimer();
+            
         }
 
         int syncWaitPeriod = 10; //minutes
@@ -68,6 +62,18 @@ namespace PathMet_V2
         DateTime lastStartTime;
         DateTime lastInternetLostConnectionTime;
         DateTime lastSyncTime;
+
+        private void startSyncTimer()
+        {
+            lastSubmitTime = DateTime.UtcNow;
+            lastInternetLostConnectionTime = DateTime.UtcNow;
+            lastSyncTime = DateTime.UtcNow;
+            lastStartTime = DateTime.UtcNow;
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+            timer.Tick += TimedSync;
+            timer.Start();
+        }
 
         private void TimedSync(object sender, EventArgs e)
         {
@@ -594,16 +600,14 @@ namespace PathMet_V2
             }
             else
             {
-                if (internetConnected())
-                {
-                    var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
-                    InitializeMap(mapId);
-
-                }
-                else
+                if (!internetConnected())
                 {
                     new UserMessageBox("Reconnect to the internet to be able to load this map.", "Unable to Load Map Without Internet Connection", "error").ShowDialog();
+                    return;
                 }
+                    
+                var mapId = availableMaps.ElementAt(UserMapsBox.SelectedIndex - 1).ItemId;
+                InitializeMap(mapId);
             }
         }
 
@@ -1258,6 +1262,7 @@ namespace PathMet_V2
             btnStop.IsEnabled = false;
             btnRetryPmConnect.IsEnabled = true;
             txtFName.IsEnabled = false;
+            CommentBox.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
@@ -1309,6 +1314,7 @@ namespace PathMet_V2
 
             //fill the name of the run with a default name and allow user to change it
             txtFName.IsEnabled = true;
+            CommentBox.IsEnabled = true;
             if (txtFName.Text == "")
             {
                 txtFName.Text = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
@@ -1330,12 +1336,13 @@ namespace PathMet_V2
             btnStop.IsEnabled = false;
             btnRetryPmConnect.IsEnabled = false;
             txtFName.IsEnabled = false;
+            CommentBox.IsEnabled = true;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
             StatusTxt.Text = "Choosing points for run path...";
-            FullControlPanel.Visibility = Visibility.Hidden;
+            RunContentGrid.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Visible;
             submitBtn.IsEnabled = false;
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
@@ -1348,15 +1355,17 @@ namespace PathMet_V2
             btnStop.IsEnabled = false;
             btnRetryPmConnect.IsEnabled = false;
             txtFName.IsEnabled = false;
+            CommentBox.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
             btnOther.IsEnabled = false;
-            FullControlPanel.Visibility = Visibility.Hidden;
+            RunContentGrid.Visibility = Visibility.Hidden;
             PostRunControlsPanel.Visibility = Visibility.Visible;
             submitBtn.IsEnabled = true;
-            //StatusTxt.Text = "Post-run: review or submit the completed run.";
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
+            UserContentGrid.IsEnabled = false;
+            ObstacleGrid.IsEnabled = false;
         }
 
         public void UpdateUI_RunInProgress()
@@ -1364,6 +1373,7 @@ namespace PathMet_V2
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = true;
             txtFName.IsEnabled = false;
+            CommentBox.IsEnabled = false;
             btnVegetation.IsEnabled = true;
             btnTrippingHazard.IsEnabled = true;
             btnBrokenSidewalk.IsEnabled = true;
@@ -1377,6 +1387,7 @@ namespace PathMet_V2
             pmStart.IsEnabled = true;
             btnStop.IsEnabled = false;
             txtFName.IsEnabled = true;
+            CommentBox.IsEnabled = true;
             StatusTxt.Text = "Now you may type a specific name for the run.\nHit \"Start\" to begin run.";
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
         }
@@ -1391,6 +1402,7 @@ namespace PathMet_V2
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = false;
             txtFName.IsEnabled = false;
+            CommentBox.IsEnabled = false;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;

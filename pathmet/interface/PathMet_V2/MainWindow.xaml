@@ -10,8 +10,49 @@
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
         Icon="pathmet_icon.ico"
-        Closing="Window_Closing">
+        Closing="Window_Closing" d:DesignWidth="1368" d:DesignHeight="912">
 
+    <Window.Resources>
+
+        <VisualBrush x:Key="RunNameHint" AlignmentX="Center" AlignmentY="Center" Stretch="None" >
+            <VisualBrush.Visual>
+                <Grid HorizontalAlignment="Center">
+                    <TextBlock FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic" Opacity="1" Text="Enter Name of Run "/>
+                </Grid>
+            </VisualBrush.Visual>
+        </VisualBrush>
+        <VisualBrush x:Key="CommentBoxHint" AlignmentX="Left" AlignmentY="Top" Stretch="None" >
+            <VisualBrush.Visual>
+                <Grid HorizontalAlignment="Left">
+                    <TextBlock FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic" Opacity="1" Text="Enter any comments about this run..."/>
+                </Grid>
+            </VisualBrush.Visual>
+        </VisualBrush>
+        <ControlTemplate x:Key="sensorStatusCheckBox" TargetType="{x:Type CheckBox}">
+            <Grid HorizontalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Ellipse x:Name="outerCircle" Grid.Row="0" Width="40" Height="40" StrokeThickness="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Ellipse.Stroke>
+                        <SolidColorBrush Color="#5CAADE"/>
+                    </Ellipse.Stroke>
+                </Ellipse>
+                <Image Grid.Row="0" x:Name="chkImg"  Source="checkmark.png" Width="26" Stretch="Uniform" Margin="0 5 0 0" SnapsToDevicePixels="True"/>
+                <ContentPresenter Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="chkImg" Property="Visibility" Value="Visible"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="False">
+                    <Setter TargetName="chkImg" Property="Visibility" Value="Hidden"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+    </Window.Resources>
 
 
     <!-- Overall panel grid-->
@@ -46,16 +87,16 @@
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="3*"/>
                     </Grid.RowDefinitions>
-                    <Border BorderBrush="Black" BorderThickness="0 0 1 2" Grid.Row="0" Grid.Column="0">
+                    <Border BorderBrush="DarkGray" BorderThickness="0 0 1 1" Grid.Row="0" Grid.Column="0">
                         <TextBlock Text="Run Data:" Padding="5" FontSize="18"/>
                     </Border>
-                    <Border BorderBrush="Black" BorderThickness="1 0 0 2" Grid.Row="0" Grid.Column="1">
+                    <Border BorderBrush="DarkGray" BorderThickness="1 0 0 1" Grid.Row="0" Grid.Column="1">
                         <TextBlock  Text="Drawn Path:" Padding="5" FontSize="18"/>
                     </Border>
-                    <Border BorderBrush="Black" BorderThickness="0 0 1 0 " Grid.Row="1" Grid.Column="0">
+                    <Border BorderBrush="DarkGray" BorderThickness="0 1 1 0 " Grid.Row="1" Grid.Column="0">
                         <TextBlock x:Name="pastRunDistTxt" Grid.Row="1" Grid.Column="0" Padding="5" FontSize="18"/>
                     </Border>
-                    <Border BorderBrush="Black" BorderThickness="1 0 0 0 " Grid.Row="1" Grid.Column="1">
+                    <Border BorderBrush="DarkGray" BorderThickness="1 1 0 0 " Grid.Row="1" Grid.Column="1">
                         <TextBlock x:Name="drawnRunDistTxt" Grid.Row="1" Grid.Column="1" Padding="5" FontSize="18"/>
                     </Border>
 
@@ -99,7 +140,7 @@
             </Grid>
         </Grid>
 
-        <Grid Grid.Column="1" x:Name="FullControlPanel">
+        <Grid Grid.Column="1" x:Name="FullControlPanel" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="5*"/>
@@ -128,30 +169,39 @@
                         <Run Foreground="#0A6893" FontWeight="Bold" Text="PATHMET"/>
                     </TextBlock>
                     <Border Grid.Row="2">
-                    <Grid x:Name="MapSyncInfoContainer" Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="5*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="2*"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox x:Name="UserMapsBox" Grid.Column="0" SelectionChanged="MapChosen" Padding="5" FontSize="20" Margin="0 0 5 0" VerticalAlignment="Center">
-                            <ComboBoxItem Content="-- Select Map --" IsSelected="True" />
-                        </ComboBox>
+                        <Grid x:Name="MapSyncInfoContainer" Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="5*"/>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="UserMapsBox" IsEnabled="False"  Grid.Column="0" SelectionChanged="MapChosen" Padding="5" FontSize="20" Margin="0 0 5 0" VerticalAlignment="Center">
+                                <ComboBoxItem Content="-- Select Map --" IsSelected="True"/>
+                            </ComboBox>
                             <TextBlock x:Name="MapSyncStatus" Grid.Column="1" Text="" TextAlignment="Center"  FontSize="20" Padding="5"  Margin="5 0" VerticalAlignment="Center"/>
                             <Border Background="#FF5CAADE" CornerRadius="10" Grid.Column="2" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
                                 <Border.Effect>
                                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                                 </Border.Effect>
-                                <Button x:Name="SyncBtn" Grid.Column="2" Content="Sync" Click="Sync_Clicked" IsEnabled="False" Foreground="White" Padding="5"  VerticalAlignment="Center"  FontSize="20" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" HorizontalAlignment="Stretch">
-
+                                <Button x:Name="SyncBtn" Grid.Column="2" Content="Sync" Click="Sync_Clicked" IsEnabled="False" Padding="5"  VerticalAlignment="Center"  FontSize="20" Background="Transparent" BorderThickness="0" BorderBrush="Transparent" HorizontalAlignment="Stretch">
+                                    <Button.Style>
+                                        <Style TargetType="{x:Type Button}">
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=SyncBtn, Path=IsEnabled}" Value="False">
+                                                    <Setter Property="Foreground" Value="LightGray"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
                                 </Button>
                             </Border>
                         </Grid>
                     </Border>
                 </Grid>
             </Border>
-            <Border Background="#D8DFE3" Padding="10" Grid.Row="1">
-                <Grid Name="RunContentGrid" Grid.Row="1">
+            <Border x:Name="RunContentGrid" Visibility="Hidden"  Background="#D8DFE3" Padding="10" Grid.Row="1">
+                <Grid >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*"/>
@@ -162,7 +212,7 @@
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
-                        <Grid Name="sensorsBox"  Grid.Row="0">
+                        <Grid Name="sensorsBox"  Grid.Row="0" Margin="5">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -170,67 +220,185 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="1" Content="Laser" Name="chkbxL" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="2" Content="Camera" Name="chkbxC" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="3" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="20" />
-                            <CheckBox Grid.Column="4" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" VerticalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="0" Template="{StaticResource sensorStatusCheckBox}" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="1" Template="{StaticResource sensorStatusCheckBox}" Content="Laser" Name="chkbxL" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="2" Template="{StaticResource sensorStatusCheckBox}" Content="Camera" Name="chkbxC" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
+                            <CheckBox Grid.Column="3" Template="{StaticResource sensorStatusCheckBox}" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" FontSize="20" />
+                            <CheckBox Grid.Column="4" Template="{StaticResource sensorStatusCheckBox}" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" FontSize="20"/>
                         </Grid>
                     </Border>
-                    <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock  Text="Name of the Run:" Foreground="Gray" FontStyle="Italic" FontSize="16" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        <Border CornerRadius="10" Background="White" Margin="2" BorderBrush="Transparent" BorderThickness="0"  Grid.Column="1" VerticalAlignment="Center" >
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <TextBox Name="txtFName" Padding="5" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Style="{StaticResource {x:Static ToolBar.TextBoxStyleKey}}" VerticalContentAlignment="Center" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextAlignment="Center"/>
-                        </Border>
-                    </Grid>
-                    
 
-                    <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" Padding="5" Grid.Row="2" HorizontalAlignment="Center" >
+                    <Border CornerRadius="10" Background="White" Margin="2" BorderBrush="Transparent" BorderThickness="0"  Grid.Row="1" VerticalAlignment="Center" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
-                        <Grid Name="RunControlsGrid" Grid.Row="2" HorizontalAlignment="Center">
+                        <TextBox IsEnabled="True" x:Name="txtFName" Padding="5 10" BorderBrush="Transparent" BorderThickness="0" VerticalContentAlignment="Center" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextAlignment="Center">
+                            <TextBox.Style>
+                                <Style TargetType="{x:Type TextBox}">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=txtFName,Path=Text}" Value="" >
+                                            <Setter Property="Background" Value="{StaticResource RunNameHint}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ElementName=txtFName,Path=IsEnabled}" Value="False" >
+                                            <Setter Property="Background" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Border>
+
+
+
+                    <Border CornerRadius="10" Background="White" Padding="10,10" Grid.Row="2">
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <Grid Name="RunControlsGrid" Grid.Row="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="3*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Button x:Name="pmStart" Grid.Column="0" Margin="0 0 10 0" ScrollViewer.CanContentScroll="True" Padding="10 0 15 0" Click="OnStart" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" HorizontalAlignment="Stretch">
-                                <Grid VerticalAlignment="Stretch">
+                            <Button x:Name="pmStart" Grid.Column="0"  Click="OnStart" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Image Source="icon_start.png" Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 0" />
-                                    <TextBlock Text="Start" Grid.Column="1" HorizontalAlignment="Center" FontSize="20" Foreground="#5CAADE" VerticalAlignment="Center"/>
+                                    <Image Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,15,10">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="icon_start.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=pmStart, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Source" Value="icon_start_disabled.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock Text="Start" Grid.Column="1" HorizontalAlignment="Center" FontSize="22" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#5CAADE"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=pmStart, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
 
-                            <Button x:Name="btnStop" Grid.Column="1" ScrollViewer.CanContentScroll="True" Click="OnStop" Padding="15 0 10 0" Background="Transparent" BorderBrush="Transparent"  Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-                                <Grid VerticalAlignment="Center">
+                            <Button x:Name="btnStop" Grid.Column="2" Click="OnStop" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" VerticalAlignment="Stretch">
+                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Image Source="icon_stop.png" Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 0" />
-                                    <TextBlock Text="Stop" Grid.Column="1" HorizontalAlignment="Center" FontSize="20" Foreground="#5CAADE" VerticalAlignment="Center"/>
+                                    <Image Stretch="Uniform" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,15,10">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="icon_stop.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnStop, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Source" Value="icon_stop_disabled.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock Text="Stop" Grid.Column="1" HorizontalAlignment="Center" FontSize="22" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#5CAADE"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnStop, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
                         </Grid>
                     </Border>
+
                     <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="0 5"  Grid.Row="3" HorizontalAlignment="Center" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
                         <Button Content="Reset pathMet connection" Padding="10 5" Grid.Row="3" Name="btnRetryPmConnect" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Click="retryPmConnection_Click" HorizontalAlignment="Center" FontSize="20" VerticalAlignment="Center"/>
                     </Border>
+                </Grid>
+            </Border>
+            <Border x:Name="PostRunControlsPanel" Visibility="Visible"  Background="#D8DFE3" Padding="10" Grid.Row="1">
+                <Grid Grid.Row="1" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock HorizontalAlignment="Center" FontWeight="Bold" Margin="0,10" Foreground="#0A6893" FontSize="20" Grid.Row="0">POST-RUN CONTROLS</TextBlock>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="White" Grid.Column="0" Margin="20" CornerRadius="10" BorderBrush="Transparent" >
+                            <Border.Effect>
+                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                            </Border.Effect>
+                            <Button Content="Review Images" x:Name="reviewBtn" Padding="5,15" Click="reviewBtn_Click" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" />
+                        </Border>
+                        <Border Background="White" Grid.Column="1" Margin="20" CornerRadius="10" BorderBrush="Transparent" >
+                            <Border.Effect>
+                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                            </Border.Effect>
+                            <Button Content="Discard Run" x:Name="discardBtn" Padding="5,15" Click="onDiscard" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" />
+                        </Border>
+                    </Grid>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="1" Margin="10" CornerRadius="10" BorderBrush="Transparent" >
+                            <Border.Effect>
+                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="Background" Value="#FF5CAADE"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=submitBtn, Path=IsEnabled}" Value="False">
+                                            <Setter Property="Background" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Button Content="Submit Run" x:Name="submitBtn" Click="onSubmit" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                                <Button.Style>
+                                    <Style TargetType="{x:Type Button}">
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=submitBtn, Path=IsEnabled}" Value="False">
+                                                <Setter Property="Foreground" Value="LightGray"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Border>
             <Border Background="#EDF0F2" Padding="10" Grid.Row="2">
@@ -253,14 +421,25 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button  Name="btnTrippingHazard" ScrollViewer.CanContentScroll="True" Click="btnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Button Margin="0" Name="btnTrippingHazard"  ScrollViewer.CanContentScroll="True" Click="btnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" >
                                 <Grid>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="7*"/>
                                         <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Image Source="icon_tripping_hazard.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Tripping Hazard" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
+                                    <Image Source="icon_tripping_hazard.png" Stretch="Uniform" Grid.Row="0" Margin="0 5 0 0"/>
+                                    <TextBlock x:Name="tripHazardTxt" Text="Tripping Hazard" Grid.Row="1" FontSize="20" TextAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnTrippingHazard, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
                         </Border>
@@ -268,14 +447,25 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button  Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="btnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Button Margin="0" Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="btnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
                                 <Grid>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="7*"/>
                                         <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Image Source="icon_broken_sidewalk.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Broken Sidewalk" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
+                                    <Image Source="icon_broken_sidewalk.png" Stretch="Uniform" Grid.Row="0" Margin="0 5 0 0"/>
+                                    <TextBlock Text="Broken Sidewalk" Grid.Row="1" FontSize="20" TextAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnBrokenSidewalk, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
                         </Border>
@@ -283,14 +473,25 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button  Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="btnVegetation_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Button Margin="0 0 0 0" Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="btnVegetation_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
                                 <Grid>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="7*"/>
                                         <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Image Source="icon_vegetation.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Vegetation" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
+                                    <Image Source="icon_vegetation.png" Stretch="Uniform" Grid.Row="0" Margin="0 5 0 0"/>
+                                    <TextBlock Text="Vegetation" Grid.Row="1" FontSize="20"  TextAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnVegetation, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
                         </Border>
@@ -298,47 +499,51 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button  Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" HorizontalAlignment="Stretch">
+                            <Button Margin="0" Name="btnOther" ScrollViewer.CanContentScroll="True" Click="btnOther_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" HorizontalAlignment="Stretch">
                                 <Grid>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="7*"/>
                                         <RowDefinition Height="3*"/>
-                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Image Source="icon_other.png" Stretch="Uniform" Grid.Row="0" Margin="10"/>
-                                    <TextBlock Text="Other" Grid.Row="1" FontSize="20" Foreground="White" TextAlignment="Center"/>
+                                    <Image Source="icon_other.png" Stretch="Uniform" Grid.Row="0" Margin="0 5 0 0"/>
+                                    <TextBlock Text="Other" Grid.Row="1" FontSize="20" TextAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=btnOther, Path=IsEnabled}" Value="False">
+                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </Button>
                         </Border>
                     </Grid>
-                    <Grid Grid.Row="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="5*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="Run Comments:" Foreground="Gray" FontStyle="Italic" FontSize="16"/>
-                        <Border CornerRadius="10" Background="White" Margin="0 2 0 0" Padding="5"  Grid.Row="1" >
-                            <Border.Effect>
-                                <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
-                            </Border.Effect>
-                            <TextBox x:Name="CommentBox" Grid.Column="1"  BorderThickness="0"/>
-                        </Border>
-
-                    </Grid>
+                    <Border CornerRadius="10" Background="White"  Padding="5" Margin="0 10 0 0" Grid.Row="2" >
+                        <Border.Effect>
+                            <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <TextBox x:Name="CommentBox" Grid.Column="1"  BorderThickness="0">
+                            <TextBox.Style>
+                                <Style TargetType="{x:Type TextBox}">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=CommentBox,Path=Text}" Value="" >
+                                            <Setter Property="Background" Value="{StaticResource CommentBoxHint}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ElementName=CommentBox,Path=IsEnabled}" Value="False">
+                                            <Setter Property="Background" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>
-
-        <StackPanel Grid.Column="1" VerticalAlignment="Center" x:Name="PostRunControlsPanel" Visibility="Collapsed">
-            <TextBlock HorizontalAlignment="Center" Margin="0,10" FontSize="20">Post-Run Controls</TextBlock>
-            <Grid Margin="10 10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Content="Review Images" x:Name="reviewBtn" Grid.Column="0" Margin="0,10,10,10" Padding="5,15" Click="reviewBtn_Click" FontSize="20" />
-                <Button Content="Discard Run" x:Name="discardBtn" Grid.Column="1" Margin="10,10,0,10" Padding="5,15" Click="onDiscard" FontSize="20" />
-            </Grid>
-            <Button Content="Submit Run" x:Name="submitBtn" Margin="10" Padding="15" Click="onSubmit" FontSize="20" />
-        </StackPanel>
     </Grid>
 </Window>

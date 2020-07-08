@@ -170,6 +170,7 @@
     <Resource Include="pathvu_mark_orange_wblue_rgb_1024_6qp_icon.ico" />
     <Resource Include="pvbluemark_ykH_icon.ico" />
     <Resource Include="icon_broken_sidewalk.png" />
+    <Resource Include="checkmark.png" />
     <Content Include="icon_broken_sidewalk.svg" />
     <Resource Include="icon_other.png" />
     <Content Include="icon_other.svg" />
@@ -178,8 +179,10 @@
     <Resource Include="icon_start.png" />
     <Content Include="icon_start.svg" />
     <Resource Include="icon_stop.png" />
+    <Resource Include="icon_start_disabled.png" />
     <Content Include="icon_stop.svg" />
     <Resource Include="icon_tripping_hazard.png" />
+    <Resource Include="icon_stop_disabled.png" />
     <Content Include="icon_tripping_hazard.svg" />
     <Resource Include="icon_vegetation.png" />
     <Content Include="icon_vegetation.svg" />
