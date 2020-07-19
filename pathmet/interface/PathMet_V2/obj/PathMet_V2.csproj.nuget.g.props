@@ -17,5 +17,6 @@
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <PkgEsri_ArcGISRuntime_WPF Condition=" '$(PkgEsri_ArcGISRuntime_WPF)' == '' ">C:\Users\Charles\.nuget\packages\esri.arcgisruntime.wpf\100.8.0</PkgEsri_ArcGISRuntime_WPF>
+    <PkgEsri_ArcGISRuntime_Toolkit Condition=" '$(PkgEsri_ArcGISRuntime_Toolkit)' == '' ">C:\Users\Charles\.nuget\packages\esri.arcgisruntime.toolkit\100.8.0</PkgEsri_ArcGISRuntime_Toolkit>
   </PropertyGroup>
 </Project>

@@ -17,6 +17,24 @@
           "build/net461/_._": {}
         }
       },
+      "Esri.ArcGISRuntime.Toolkit/100.8.0": {
+        "type": "package",
+        "dependencies": {
+          "Esri.ArcGISRuntime.WPF": "100.8.0"
+        },
+        "frameworkAssemblies": [
+          "PresentationCore",
+          "PresentationFramework",
+          "System.Xaml",
+          "WindowsBase"
+        ],
+        "compile": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        },
+        "runtime": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        }
+      },
       "Esri.ArcGISRuntime.WPF/100.8.0": {
         "type": "package",
         "frameworkAssemblies": [
@@ -223,6 +241,24 @@
           "build/net461/_._": {}
         }
       },
+      "Esri.ArcGISRuntime.Toolkit/100.8.0": {
+        "type": "package",
+        "dependencies": {
+          "Esri.ArcGISRuntime.WPF": "100.8.0"
+        },
+        "frameworkAssemblies": [
+          "PresentationCore",
+          "PresentationFramework",
+          "System.Xaml",
+          "WindowsBase"
+        ],
+        "compile": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        },
+        "runtime": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        }
+      },
       "Esri.ArcGISRuntime.WPF/100.8.0": {
         "type": "package",
         "frameworkAssemblies": [
@@ -391,6 +427,24 @@
         },
         "build": {
           "build/net461/_._": {}
+        }
+      },
+      "Esri.ArcGISRuntime.Toolkit/100.8.0": {
+        "type": "package",
+        "dependencies": {
+          "Esri.ArcGISRuntime.WPF": "100.8.0"
+        },
+        "frameworkAssemblies": [
+          "PresentationCore",
+          "PresentationFramework",
+          "System.Xaml",
+          "WindowsBase"
+        ],
+        "compile": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        },
+        "runtime": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
         }
       },
       "Esri.ArcGISRuntime.WPF/100.8.0": {
@@ -565,6 +619,24 @@
         },
         "build": {
           "build/net461/_._": {}
+        }
+      },
+      "Esri.ArcGISRuntime.Toolkit/100.8.0": {
+        "type": "package",
+        "dependencies": {
+          "Esri.ArcGISRuntime.WPF": "100.8.0"
+        },
+        "frameworkAssemblies": [
+          "PresentationCore",
+          "PresentationFramework",
+          "System.Xaml",
+          "WindowsBase"
+        ],
+        "compile": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
+        },
+        "runtime": {
+          "lib/net461/Esri.ArcGISRuntime.Toolkit.dll": {}
         }
       },
       "Esri.ArcGISRuntime.WPF/100.8.0": {
@@ -752,6 +824,57 @@
         "lib/netstandard2.0/Esri.ArcGISRuntime.dll",
         "lib/netstandard2.0/Esri.ArcGISRuntime.xml",
         "lib/uap10.0/_._"
+      ]
+    },
+    "Esri.ArcGISRuntime.Toolkit/100.8.0": {
+      "sha512": "mZIk39I/5gwtNZ0oIq626X6oWQFU5KVHE7o0ypMj4uxP+XbJX47JrQSkQpmG+x0F20pWfTg4RR0rfhSHVLZnNQ==",
+      "type": "package",
+      "path": "esri.arcgisruntime.toolkit/100.8.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "esri.arcgisruntime.toolkit.100.8.0.nupkg.sha512",
+        "esri.arcgisruntime.toolkit.nuspec",
+        "icon.png",
+        "lib/monoandroid90/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/monoandroid90/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/monoandroid90/Esri.ArcGISRuntime.Toolkit.xml",
+        "lib/net461/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/net461/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/net461/Esri.ArcGISRuntime.Toolkit.xml",
+        "lib/netcoreapp3.1/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/netcoreapp3.1/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/netcoreapp3.1/Esri.ArcGISRuntime.Toolkit.xml",
+        "lib/netstandard2.0/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/netstandard2.0/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/netstandard2.0/Esri.ArcGISRuntime.Toolkit.xml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit.pri",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit.xml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureArea.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureAreaDark.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureFeature.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureFeatureDark.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureLength.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Assets/MeasureLengthDark.scale-200.png",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Esri.ArcGISRuntime.Toolkit.xr.xml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/Themes/Generic.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/BookmarksView/BookmarksView.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/Compass/Compass.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/FeatureDataField/FeatureDataField.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/LayerLegend/LayerLegend.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/Legend/Legend.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/MeasureToolbar/MeasureToolbar.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/PopupViewer/PopupViewer.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/ScaleLine/ScaleLine.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/SymbolDisplay/SymbolDisplay.Theme.xaml",
+        "lib/uap10.0.17134/Esri.ArcGISRuntime.Toolkit/UI/Controls/TimeSlider/TimeSlider.Theme.xaml",
+        "lib/xamarinios10/Esri.ArcGISRuntime.Toolkit.dll",
+        "lib/xamarinios10/Esri.ArcGISRuntime.Toolkit.pdb",
+        "lib/xamarinios10/Esri.ArcGISRuntime.Toolkit.xml",
+        "tools/VisualStudioToolsManifest.xml"
       ]
     },
     "Esri.ArcGISRuntime.WPF/100.8.0": {
@@ -1166,6 +1289,7 @@
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.7.2": [
       "Esri.ArcGISRuntime >= 100.8.0",
+      "Esri.ArcGISRuntime.Toolkit >= 100.8.0",
       "OpenCvSharp3-AnyCPU >= 4.0.0.20181129"
     ]
   },
@@ -1176,11 +1300,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+      "projectUniqueName": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
       "projectName": "PathMet_V2",
-      "projectPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+      "projectPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
       "packagesPath": "C:\\Users\\Charles\\.nuget\\packages\\",
-      "outputPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\obj\\",
+      "outputPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\obj\\",
       "projectStyle": "PackageReference",
       "skipContentFileWrite": true,
       "fallbackFolders": [
@@ -1209,6 +1333,10 @@
       "net472": {
         "dependencies": {
           "Esri.ArcGISRuntime": {
+            "target": "Package",
+            "version": "[100.8.0, )"
+          },
+          "Esri.ArcGISRuntime.Toolkit": {
             "target": "Package",
             "version": "[100.8.0, )"
           },

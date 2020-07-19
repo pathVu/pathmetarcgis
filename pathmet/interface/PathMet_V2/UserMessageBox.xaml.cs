@@ -20,7 +20,6 @@ namespace PathMet_V2
     /// </summary>
     public partial class UserMessageBox : Window
     {
-        Button basicBtn;
 
         public UserMessageBox(string msg, string caption) : this(msg, caption, "") { }
 
@@ -35,37 +34,58 @@ namespace PathMet_V2
             this.Title = caption;
             messageBox.Text = msg;
 
-            basicBtn = new Button();
-            basicBtn.VerticalAlignment = VerticalAlignment.Center;
-            basicBtn.FontSize = 16;
-            basicBtn.Padding = new Thickness(40, 20, 40, 20);
-            basicBtn.Margin = new Thickness(20);
-            basicBtn.Click += yesResponse;
 
             switch (type)
             {
                 case "error":
-                    Button errbtn = basicBtn;
+                    Button errbtn = new Button
+                    {
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 16,
+                        Padding = new Thickness(40, 20, 40, 20),
+                        Margin = new Thickness(20)
+                    };
+                    errbtn.Click += yesResponse;
                     panel_Container.Background = System.Windows.Media.Brushes.LightCoral;
                     errbtn.Content = "OK";
                     errbtn.Click += closeWindow;
                     buttonsPanel.Children.Add(errbtn);
                     break;
+
                 case "yesno":
-                    Button yesBtn = basicBtn;
-                    yesBtn.Content = "Yes";
+                    Button yesBtn = new Button
+                    {
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 16,
+                        Padding = new Thickness(40, 20, 40, 20),
+                        Margin = new Thickness(20),
+                        Content = "Yes"
+                    };
                     yesBtn.Click += yesResponse;
                     buttonsPanel.Children.Add(yesBtn);
 
-                    Button noBtn = basicBtn;
-                    noBtn.Content = "No";
+                    Button noBtn = new Button
+                    {
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 16,
+                        Padding = new Thickness(40, 20, 40, 20),
+                        Margin = new Thickness(20),
+                        Content = "No"
+                    };
                     noBtn.Click -= yesResponse;
                     noBtn.Click += noResponse;
                     buttonsPanel.Children.Add(noBtn);
                     break;
+
                 default:
-                    Button okayBtn = basicBtn;
-                    okayBtn.Content = "OK";
+                    Button okayBtn = new Button
+                    {
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 16,
+                        Padding = new Thickness(40, 20, 40, 20),
+                        Margin = new Thickness(20),
+                        Content = "OK"
+                    };
                     okayBtn.Click += closeWindow;
                     buttonsPanel.Children.Add(okayBtn);
                     break;
