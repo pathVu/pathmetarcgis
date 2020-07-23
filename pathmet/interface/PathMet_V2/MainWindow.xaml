@@ -22,6 +22,14 @@
             </VisualBrush.Visual>
         </VisualBrush>
         <VisualBrush x:Key="CommentBoxHint" AlignmentX="Left" AlignmentY="Top" Stretch="None" >
+            <VisualBrush.Transform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="5"/>
+                </TransformGroup>
+            </VisualBrush.Transform>
             <VisualBrush.Visual>
                 <Grid HorizontalAlignment="Left">
                     <TextBlock FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic" Opacity="1" Text="Enter any comments about this run..."/>
@@ -29,17 +37,17 @@
             </VisualBrush.Visual>
         </VisualBrush>
         <ControlTemplate x:Key="sensorStatusCheckBox" TargetType="{x:Type CheckBox}">
-            <Grid HorizontalAlignment="Center">
+            <Grid HorizontalAlignment="Stretch">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="3*"/>
                     <RowDefinition Height="2*"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Ellipse x:Name="outerCircle" Grid.Row="0" Width="40" Height="40" StrokeThickness="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Ellipse x:Name="outerCircle"  Stretch="Uniform" Grid.Row="0" StrokeThickness="3"  SnapsToDevicePixels="True" UseLayoutRounding="True" Width="35" Height="35" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Center">
                     <Ellipse.Stroke>
                         <SolidColorBrush Color="#5CAADE"/>
                     </Ellipse.Stroke>
                 </Ellipse>
-                <Image Grid.Row="0" x:Name="chkImg"  Source="checkmark.png" Width="26" Stretch="Uniform" Margin="0 5 0 0" SnapsToDevicePixels="True"/>
+                <Image Grid.Row="0" Visibility="Visible" x:Name="chkImg"  Source="checkmark.png" Width="20" SnapsToDevicePixels="True" Stretch="Uniform" UseLayoutRounding="True" Margin="0,2.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <ContentPresenter Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
             </Grid>
             <ControlTemplate.Triggers>
@@ -51,12 +59,66 @@
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background" Color="LightGray"/>
+        <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="White"/>
+        <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
+            <!--Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/-->
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <!--Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </-->
+                            <!--Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </-->
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
 
     <!-- Overall panel grid-->
-    <Grid>
+    <Grid UseLayoutRounding="True" SnapsToDevicePixels="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -64,17 +126,17 @@
 
         <esri:MapView x:Name="MyMapView" Grid.Column="0"/>
         <TextBlock x:Name="StatusTxt" Grid.Column="0" Text="Choose a Starting Point" Margin="0" VerticalAlignment="Top" FontSize="20" Padding="5 2" UseLayoutRounding="False"/>
-        <Border CornerRadius="10" Background="#FF5CAADE" VerticalAlignment="Bottom" Margin="5 5 5 25" HorizontalAlignment="Center" >
+        <Border x:Name="downloadMapBtn_border" CornerRadius="10" Background="#FF5CAADE" VerticalAlignment="Bottom" Margin="5 5 5 25" HorizontalAlignment="Center" >
             <Border.Effect>
                 <DropShadowEffect Direction="225" Opacity="0.6" BlurRadius="15" ShadowDepth="5"/>
             </Border.Effect>
-            <Button x:Name="downloadMapBtn" Background="Transparent" Foreground="White" BorderBrush="Transparent" BorderThickness="0" Grid.Column="0" Content="Take Map Offline" VerticalAlignment="Bottom" Padding="20 10" FontSize="20" Click="DownloadOfflineMap" Visibility="Collapsed" />
+            <Button x:Name="downloadMapBtn" Background="Transparent" Foreground="White" BorderBrush="Transparent" BorderThickness="0" Grid.Column="0" Content="Take Map Offline" VerticalAlignment="Bottom" Padding="20 10" FontSize="20" Click="DownloadOfflineMap" Visibility="Collapsed" Style="{DynamicResource ButtonStyle1}" />
         </Border>
 
         <!-- Drawing edit and restart buttons-->
         <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,25" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
             <!--Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="16" Visibility="Collapsed" />-->
-            <Border x:Name="drawnLineStatusIndicator" BorderBrush="LightGreen" BorderThickness="4"  CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
+            <Border x:Name="drawnLineStatusIndicator" BorderBrush="Red" BorderThickness="4"  CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
                 <Border.Effect>
                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                 </Border.Effect>
@@ -102,11 +164,11 @@
 
                 </Grid>
             </Border>
-            <Border CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
+            <Border CornerRadius="10" x:Name="undoBtn_border" Background="White" Margin="5" HorizontalAlignment="Center" >
                 <Border.Effect>
                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                 </Border.Effect>
-                <Button Content="Undo" x:Name="undoBtn" Padding="10 5" FontSize="18" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Click="UndoLastVertex"/>
+                <Button Content="Undo" x:Name="undoBtn" Padding="10 5" FontSize="18" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Click="UndoLastVertex" Style="{DynamicResource ButtonStyle1}"/>
             </Border>
         </StackPanel>
         <Grid x:Name="progressIndicator" Background="#B2434343" Visibility="Collapsed" Grid.Column="0">
@@ -154,13 +216,14 @@
                         <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="0">
+                        <TextBlock x:Name="disconnectedFlagBox" Text="(Disconnected)" Visibility="Collapsed" Foreground="Crimson" VerticalAlignment="Center" FontSize="18" Margin="0,0,10,0"/>
                         <TextBlock x:Name="userNameBox" Text="" Visibility="Collapsed" VerticalAlignment="Center" FontSize="18"/>
                         <Image x:Name="profilePic" Visibility="Visible" Margin="5 0"/>
-                        <Border Background="#FF5CAADE" CornerRadius="10" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
+                        <Border x:Name="loginBtn_border" Background="#FF5CAADE" CornerRadius="10" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button x:Name="loginBtn" Content="Login" Padding="10 5" BorderBrush="Transparent" BorderThickness="0" Click="LoginBtn_Click" Foreground="White"  FontSize="18" Background="Transparent" VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                            <Button x:Name="loginBtn" Content="Login" Padding="10 5" BorderBrush="Transparent" BorderThickness="0" Click="LoginBtn_Click" Foreground="White"  FontSize="18" Background="Transparent" VerticalAlignment="Center" SnapsToDevicePixels="True" Style="{DynamicResource ButtonStyle1}"/>
                         </Border>
                     </StackPanel>
 
@@ -179,21 +242,11 @@
                                 <ComboBoxItem Content="-- Select Map --" IsSelected="True" Padding="10"/>
                             </ComboBox>
                             <TextBlock x:Name="MapSyncStatus" Grid.Column="1" Text="" TextAlignment="Center"  FontSize="20" Padding="5"  Margin="5 0" VerticalAlignment="Center"/>
-                            <Border Background="#FF5CAADE" CornerRadius="10" Grid.Column="2" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
+                            <Border Background="#FF5CAADE" x:Name="SyncBtn_border" CornerRadius="10" Grid.Column="2" Margin="5 0 0 0" BorderBrush="Transparent"  VerticalAlignment="Center">
                                 <Border.Effect>
                                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                                 </Border.Effect>
-                                <Button x:Name="SyncBtn" Grid.Column="2" Content="Sync" Click="Sync_Clicked" IsEnabled="False" Padding="5"  VerticalAlignment="Center"  FontSize="20" Background="Transparent" BorderThickness="0" BorderBrush="Transparent" HorizontalAlignment="Stretch">
-                                    <Button.Style>
-                                        <Style TargetType="{x:Type Button}">
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ElementName=SyncBtn, Path=IsEnabled}" Value="False">
-                                                    <Setter Property="Foreground" Value="LightGray"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
+                                <Button x:Name="SyncBtn" Grid.Column="2" Content="Sync" Click="Sync_Clicked" IsEnabled="False" Padding="5" Foreground="White"  VerticalAlignment="Center"  FontSize="20" Background="Transparent" BorderThickness="0" BorderBrush="Transparent" HorizontalAlignment="Stretch" Style="{DynamicResource ButtonStyle1}">
                                 </Button>
                             </Border>
                         </Grid>
@@ -208,11 +261,11 @@
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
-                    <Border CornerRadius="10" Background="White" Grid.Row="0" >
+                    <Border CornerRadius="10" Padding="5" Background="White" Grid.Row="0" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
-                        <Grid Name="sensorsBox"  Grid.Row="0" Margin="5">
+                        <Grid Name="sensorsBox"  Grid.Row="0" Margin="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -220,11 +273,11 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Template="{StaticResource sensorStatusCheckBox}" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="1" Template="{StaticResource sensorStatusCheckBox}" Content="Laser" Name="chkbxL" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="2" Template="{StaticResource sensorStatusCheckBox}" Content="Camera" Name="chkbxC" IsHitTestVisible="False" HorizontalAlignment="Center" FontSize="20"/>
-                            <CheckBox Grid.Column="3" Template="{StaticResource sensorStatusCheckBox}" Content="IMU" Name="chkbxI" HorizontalAlignment="Center" IsHitTestVisible="False" FontSize="20" />
-                            <CheckBox Grid.Column="4" Template="{StaticResource sensorStatusCheckBox}" Content="Encoder" Name="chkbxE" HorizontalAlignment="Center" IsHitTestVisible="False" FontSize="20"/>
+                            <CheckBox Grid.Column="0" Template="{StaticResource sensorStatusCheckBox}" Content="PathMet" Name="chkbxPm" Background="Red" IsHitTestVisible="False" FontSize="20"/>
+                            <CheckBox Grid.Column="1" Template="{StaticResource sensorStatusCheckBox}" Content="Laser" Name="chkbxL" IsHitTestVisible="False" FontSize="20"/>
+                            <CheckBox Grid.Column="2" Template="{StaticResource sensorStatusCheckBox}" Content="Camera" Name="chkbxC" IsHitTestVisible="False" FontSize="20"/>
+                            <CheckBox Grid.Column="3" Template="{StaticResource sensorStatusCheckBox}" Content="IMU" Name="chkbxI" IsHitTestVisible="False" FontSize="20" />
+                            <CheckBox Grid.Column="4" Template="{StaticResource sensorStatusCheckBox}" Content="Encoder" Name="chkbxE" IsHitTestVisible="False" FontSize="20"/>
                         </Grid>
                     </Border>
 
@@ -286,7 +339,7 @@
                                                 <Setter Property="Foreground" Value="#5CAADE"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=pmStart, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -319,7 +372,7 @@
                                                 <Setter Property="Foreground" Value="#5CAADE"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=btnStop, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -330,11 +383,11 @@
                         </Grid>
                     </Border>
 
-                    <Border CornerRadius="10" Background="White" Margin="0 10 0 0"  Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" >
+                    <Border CornerRadius="10" x:Name="btnRetryPmConnect_border" Background="White" Margin="0 10 0 0"  Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
-                        <Button Content="Reset pathMet connection" Padding="10" Grid.Row="3" Name="btnRetryPmConnect" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Click="RetryPmConnection_Click" HorizontalAlignment="Center" FontSize="20" VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                        <Button Content="Reset pathMet connection" Padding="10" Grid.Row="3" Name="btnRetryPmConnect" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Click="RetryPmConnection_Click" HorizontalAlignment="Center" FontSize="20" VerticalAlignment="Center" SnapsToDevicePixels="True" Style="{DynamicResource ButtonStyle1}"/>
                     </Border>
                 </Grid>
             </Border>
@@ -351,17 +404,17 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Background="White" Grid.Column="0" Margin="20" CornerRadius="10" BorderBrush="Transparent" >
+                        <Border Background="White" x:Name="reviewBtn_border" Grid.Column="0" Margin="20" CornerRadius="10" BorderBrush="Transparent" >
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Content="Review Images" x:Name="reviewBtn" Padding="5,15" Click="ReviewBtn_Click" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" />
+                            <Button Content="Review Images" x:Name="reviewBtn" Padding="5,15" Click="ReviewBtn_Click" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}" />
                         </Border>
                         <Border Background="White" Grid.Column="1" Margin="20" CornerRadius="10" BorderBrush="Transparent" >
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Content="Discard Run" x:Name="discardBtn" Padding="5,15" Click="OnDiscard" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" />
+                            <Button Content="Discard Run" x:Name="discardBtn" Padding="5,15" Click="OnDiscard" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}"/>
                         </Border>
                     </Grid>
                     <Grid Grid.Row="2">
@@ -384,18 +437,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <Button Content="Submit Run" x:Name="submitBtn" Click="OnSubmit" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
-                                <Button.Style>
-                                    <Style TargetType="{x:Type Button}">
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ElementName=submitBtn, Path=IsEnabled}" Value="False">
-                                                <Setter Property="Foreground" Value="LightGray"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
+                            <Button Foreground="White" Content="Submit Run" x:Name="submitBtn" Click="OnSubmit" FontSize="20" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}">
                             </Button>
                         </Border>
                     </Grid>
@@ -421,7 +463,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Margin="0" Name="btnTrippingHazard"  ScrollViewer.CanContentScroll="True" Click="BtnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" >
+                            <Button Margin="0" Name="btnTrippingHazard"  ScrollViewer.CanContentScroll="True" Click="BtnTrippingHazard_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="7*"/>
@@ -434,7 +476,7 @@
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=btnTrippingHazard, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -447,7 +489,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Margin="0" Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="BtnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                            <Button Margin="0" Name="btnBrokenSidewalk" ScrollViewer.CanContentScroll="True" Click="BtnBrokenSidewalk_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="7*"/>
@@ -460,7 +502,7 @@
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=btnBrokenSidewalk, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -473,7 +515,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Margin="0 0 0 0" Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="BtnVegetation_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                            <Button Margin="0 0 0 0" Name="btnVegetation" ScrollViewer.CanContentScroll="True" Click="BtnVegetation_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{DynamicResource ButtonStyle1}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="7*"/>
@@ -486,7 +528,7 @@
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=btnVegetation, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -499,7 +541,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
-                            <Button Margin="0" Name="btnOther" ScrollViewer.CanContentScroll="True" Click="BtnOther_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" HorizontalAlignment="Stretch">
+                            <Button Margin="0" Name="btnOther" ScrollViewer.CanContentScroll="True" Click="BtnOther_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" Style="{DynamicResource ButtonStyle1}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="7*"/>
@@ -512,7 +554,7 @@
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ElementName=btnOther, Path=IsEnabled}" Value="False">
-                                                        <Setter Property="Foreground" Value="LightGray"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -526,7 +568,7 @@
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
-                        <TextBox x:Name="CommentBox" Grid.Column="1"  BorderThickness="0">
+                        <TextBox x:Name="CommentBox" Grid.Column="1" FontSize="16" BorderThickness="0">
                             <TextBox.Style>
                                 <Style TargetType="{x:Type TextBox}">
                                     <Setter Property="Background" Value="Transparent"/>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +28,6 @@ namespace PathMet_V2
             InitializeComponent();
             imgCount = imgPaths.Count;
 
-
             for (int i = 0; i < imgCount; i++)
             {
                 //add a combobox item for each image with just it's number
@@ -36,13 +36,26 @@ namespace PathMet_V2
                 imgNumberBox.Items.Add(runImageNumber);
 
                 //make a bitmap image from each path and add it to images list
-                images.Add(new BitmapImage(new Uri(imgPaths.ElementAt(i))));
+                /*BitmapImage bi = new BitmapImage(new Uri(imgPaths.ElementAt(i)));
+                images.Add(bi);
+                bi.Freeze();*/
+
+                var bitmap = new BitmapImage();
+                var stream = File.OpenRead(imgPaths.ElementAt(i));
+
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = stream;
+                bitmap.EndInit();
+                images.Add(bitmap);
+                stream.Close();
+                stream.Dispose();
             }
 
             imgNumberBox.SelectionChanged += boxSelection;
             imgNumberBox.SelectedIndex = 0;
-
         }
+        
 
         private void nextBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -68,6 +81,11 @@ namespace PathMet_V2
             imgNumberBox.SelectedIndex = newNum;
         }
 
-
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            currentImg.Source = null;
+            images = null;
+            GC.Collect();
+        }
     }
 }

@@ -64,6 +64,7 @@ namespace PathMet_V2
                     }
                 }
             }
+            Console.WriteLine("Camera Run thread stopping.");
         }
 
         private SensorStatus status = SensorStatus.Init;

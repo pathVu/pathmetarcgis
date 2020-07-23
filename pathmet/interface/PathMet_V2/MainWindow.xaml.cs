@@ -15,11 +15,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Color = System.Drawing.Color;
@@ -56,7 +58,7 @@ namespace PathMet_V2
                 StatusTxt.Background = System.Windows.Media.Brushes.Red;
 
                 //LoadinofflineMaps will not complete if there is no keptUser, so the connectAndGetMaps() call in loginBtn_click will never successfully load in offline maps
-                LoadInOfflineMaps();
+                await LoadInOfflineMaps();
 
                 return;
             }
@@ -171,7 +173,15 @@ namespace PathMet_V2
                     UpdateUI_PathMetConnected();
                     if (MyMapView.Map.LoadStatus == LoadStatus.Loaded)
                     {
-                        WaitForStartPt();
+                        if (currentMapIsOffline)
+                            WaitForStartPt();
+                        else
+                        {
+                            StatusTxt.Text = "Map Loaded! Take Map Offline to start making runs.";
+                            StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
+                            downloadMapBtn.Visibility = Visibility.Visible;
+                        }
+
                     }
                     else
                     {
@@ -195,18 +205,15 @@ namespace PathMet_V2
             }
         }
 
-        
-
-        private void Map_LoadStatusChanged(object sender, LoadStatusEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         readonly string mapsToSyncFilePath = Path.Combine(Properties.Settings.Default.LogPath, "MapsToSync.txt");
         readonly string keptUserFilePath = Path.Combine(Properties.Settings.Default.LogPath, "KeptUser.txt");
 
         void Window_Closing(object sender, CancelEventArgs e)
         {
+            if(offlineMapJobResults != null)
+            {
+                offlineMapJobResults.MobileMapPackage.Close();
+            }
 
             // If map has not been synced yet
             if (needMapSync)
@@ -223,6 +230,16 @@ namespace PathMet_V2
                 {
                     //user is okay with closing without syncing. Save info about the unsynced map
                     e.Cancel = true;
+                }
+            }
+            else if(userNameBox.Text != "")
+            {
+                bool result = (bool)new UserMessageBox("If you close now and lose connection to the internet, you will only have access to the maps you have taken offline when you restart the application. Are you sure you want to close now?", "Close?", "yesno").ShowDialog();
+
+                if (!result)
+                {
+                    // If user doesn't want to log out, just return
+                    return;
                 }
             }
 
@@ -252,14 +269,18 @@ namespace PathMet_V2
         {
             if (!File.Exists(mapsToSyncFilePath))
             {
-                File.CreateText(mapsToSyncFilePath);
+                StreamWriter sw = File.CreateText(mapsToSyncFilePath);
+                sw.Close();
             }
 
             List<string> lines = File.ReadAllLines(mapsToSyncFilePath).ToList();
 
+
+
             lines.Add(mapIdToSync + "_" + userNameBox.Text);
 
             File.WriteAllLines(mapsToSyncFilePath, lines);
+
         }
 
         delegate void UpdateSensorsDel();
@@ -429,8 +450,10 @@ namespace PathMet_V2
             lastStartTime = DateTime.UtcNow;
         }
 
-        private void RetryPmConnection_Click(object sender, EventArgs e)
+        private async void RetryPmConnection_Click(object sender, EventArgs e)
         {
+            btnRetryPmConnect_border.Background = darkenedWhiteButtonBrush;
+
             if (sensors != null)
             {
                 sensors.UpdateEvent -= OnUpdate;
@@ -438,6 +461,11 @@ namespace PathMet_V2
             }
 
             InitializePathMet();
+
+            await Task.Delay(250);
+
+            btnRetryPmConnect_border.Background = normalWhiteButtonBrush;
+
         }
 
         private async void OnSubmit(object sender, EventArgs e)
@@ -507,6 +535,11 @@ namespace PathMet_V2
             startPointOverlay.Graphics.Clear();
             endPointOverlay.Graphics.Clear();
 
+            RunContentGrid.Visibility = Visibility.Visible;
+            submitBtn.IsEnabled = false;
+            UserContentGrid.IsEnabled = true;
+            ObstacleGrid.IsEnabled = true;
+
             //be ready to pick a new starting point
             WaitForStartPt();
         }
@@ -520,7 +553,7 @@ namespace PathMet_V2
         }
 
 
-        private void BtnTrippingHazard_Click(object sender, EventArgs e)
+        private async void BtnTrippingHazard_Click(object sender, EventArgs e)
         {
             if (!sensors.Connected)
             {
@@ -528,9 +561,13 @@ namespace PathMet_V2
             }
 
             sensors.Flag("Tripping Hazard");
+
+            btnTrippingHazard_Container.Background = darkenedBlueButtonBrush;
+            await Task.Delay(250);
+            btnTrippingHazard_Container.Background = normalBlueButtonBrush;
         }
 
-        private void BtnBrokenSidewalk_Click(object sender, EventArgs e)
+        private async void BtnBrokenSidewalk_Click(object sender, EventArgs e)
         {
             if (!sensors.Connected)
             {
@@ -538,9 +575,13 @@ namespace PathMet_V2
             }
 
             sensors.Flag("Broken Sidewalk");
+
+            btnBrokenSidewalk_Container.Background = darkenedBlueButtonBrush;
+            await Task.Delay(250);
+            btnBrokenSidewalk_Container.Background = normalBlueButtonBrush;
         }
 
-        private void BtnVegetation_Click(object sender, EventArgs e)
+        private async void BtnVegetation_Click(object sender, EventArgs e)
         {
             if (!sensors.Connected)
             {
@@ -548,9 +589,14 @@ namespace PathMet_V2
             }
 
             sensors.Flag("Vegetation");
+
+            btnVegetation_Container.Background = darkenedBlueButtonBrush;
+            await Task.Delay(250);
+            btnVegetation_Container.Background = normalBlueButtonBrush;
+
         }
 
-        private void BtnOther_Click(object sender, EventArgs e)
+        private async void BtnOther_Click(object sender, EventArgs e)
         {
             if (!sensors.Connected)
             {
@@ -558,6 +604,11 @@ namespace PathMet_V2
             }
 
             sensors.Flag("Other");
+
+
+            btnOther_Container.Background = darkenedBlueButtonBrush;
+            await Task.Delay(250);
+            btnOther_Container.Background = normalBlueButtonBrush;
         }
 
         #endregion
@@ -579,11 +630,12 @@ namespace PathMet_V2
         private void MapChosen(object sender, SelectionChangedEventArgs e)
         {
             
-            
-            //if user has a map selected, load that map
+            //if user selected the first item, which is not a map, load nothing
             if (UserMapsBox.SelectedIndex < 1)
             {
-                MyMapView.Map = new Map();
+                //MyMapView.Map = new Map();
+                MyMapView.Map = null;
+                UpdateUI_waitForMapChosen();
             }
             else
             {
@@ -610,7 +662,10 @@ namespace PathMet_V2
                     MapSyncStatus.Text = "";
                     MapSyncStatus.Background = System.Windows.Media.Brushes.Transparent;
                 }
-                
+
+                //set the flag based on if the dropdown maps are online or not. 
+                currentMapIsOffline = !dropDownMapsAreOnline;
+
                 InitializeMap((Map)(((ComboBoxItem)UserMapsBox.SelectedItem).Tag));
                 prevSelectedIndex = UserMapsBox.SelectedIndex;
             }
@@ -641,13 +696,13 @@ namespace PathMet_V2
 
                 // Add a graphics overlay for showing the startPt.
                 startPointOverlay = new GraphicsOverlay();
-                SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.DarkOrange, 20);
+                SimpleMarkerSymbol startMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.Goldenrod, 20);
                 startPointOverlay.Renderer = new SimpleRenderer(startMarkerSymbol);
                 MyMapView.GraphicsOverlays.Add(startPointOverlay);
 
                 // Add a graphics overlay for showing the endPt.
                 endPointOverlay = new GraphicsOverlay();
-                SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.DarkRed, 20);
+                SimpleMarkerSymbol endMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Diamond, Color.Red, 20);
                 endPointOverlay.Renderer = new SimpleRenderer(endMarkerSymbol);
                 MyMapView.GraphicsOverlays.Add(endPointOverlay);
 
@@ -752,7 +807,7 @@ namespace PathMet_V2
             //try to snap the line
             MapPoint snappedPoint = await SnapToLine(tappedPoint);
 
-            if (!Geometry.IsNullOrEmpty(snappedPoint)) {
+            if (!Esri.ArcGISRuntime.Geometry.Geometry.IsNullOrEmpty(snappedPoint)) {
                 // Project the snapped point to whatever spatial reference you want
                 MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
 
@@ -890,12 +945,19 @@ namespace PathMet_V2
             pastRunDistTxt.Text = lastRunDist.ToString() + "ft";
         }
 
-        private void UndoLastVertex(object sender, RoutedEventArgs e) {
+        private async void UndoLastVertex(object sender, RoutedEventArgs e) {
+            
             if (polyLineBuilder.Parts[0].PointCount > 1)
             {
+                undoBtn_border.Background = darkenedWhiteButtonBrush;
+
                 polyLineBuilder.Parts[0].RemovePoint(polyLineBuilder.Parts[0].PointCount - 1);
                 currentRunGeom = polyLineBuilder.ToGeometry() as Polyline;
                 UpdateRunGraphicAndLength();
+
+                await Task.Delay(250);
+
+                undoBtn_border.Background = normalWhiteButtonBrush;
             }
         }
 
@@ -965,7 +1027,7 @@ namespace PathMet_V2
             MapPoint tappedPoint = e.Location;
             MapPoint snappedPoint = await SnapToLine(tappedPoint);
 
-            if (!Geometry.IsNullOrEmpty(snappedPoint))
+            if (!Esri.ArcGISRuntime.Geometry.Geometry.IsNullOrEmpty(snappedPoint))
             {
 
                 MapPoint projectedPoint = (MapPoint)GeometryEngine.Project(snappedPoint, SpatialReferences.WebMercator);
@@ -997,12 +1059,13 @@ namespace PathMet_V2
 
 
         private GenerateOfflineMapJob _generateOfflineMapJob;
+        private GenerateOfflineMapResult offlineMapJobResults = null;
         readonly string offlineMapsFolder = Path.Combine(Properties.Settings.Default.LogPath, "OfflineMapData");
         string currentOfflineMapdatafolder;
+        bool currentMapIsOffline;
 
         private async void DownloadOfflineMap(object sender, RoutedEventArgs e)
         {
-            
             if (MyMapView.Map.LoadStatus != LoadStatus.Loaded)
             {
                 new UserMessageBox("No map loaded, so there's no map to take offline. MapLoadStatus: " + MyMapView.Map.LoadStatus.ToString(), "No Map Loaded").ShowDialog();
@@ -1023,15 +1086,20 @@ namespace PathMet_V2
                 progressIndicator.Visibility = Visibility.Visible;
                 busyJobText.Text = "Downloading offline map... ";
 
+                downloadMapBtn_border.Background = darkenedBlueButtonBrush;
+
+
                 //area of interest set to the extent of the current map
-                Envelope areaOfInterest = MyMapView.Map.Item.Extent;
-                //areaOfInterest = MyMapView.VisibleArea.Extent; //set downloaded area to current view
+                //Envelope areaOfInterest = MyMapView.Map.Item.Extent;
+                Envelope areaOfInterest = MyMapView.VisibleArea.Extent; //set downloaded area to current view
 
                 //set up our folder to hold offline map data
                 currentOfflineMapdatafolder = Path.Combine(offlineMapsFolder, MyMapView.Map.Item.ItemId + "_" + portal.User.UserName);
 
                 if (Directory.Exists(currentOfflineMapdatafolder))
                 {
+                    //unregister this map id before taking a new instance offline
+
                     Directory.Delete(currentOfflineMapdatafolder, true);
                 }
 
@@ -1053,7 +1121,7 @@ namespace PathMet_V2
                 _generateOfflineMapJob.ProgressChanged += OfflineMapJob_ProgressChanged;
 
                 // Await the job to generate geodatabases, export tile packages, and create the mobile map package.
-                GenerateOfflineMapResult results = await _generateOfflineMapJob.GetResultAsync();
+                offlineMapJobResults = await _generateOfflineMapJob.GetResultAsync();
 
                 // Check for job failure (writing the output was denied, e.g.).
                 if (_generateOfflineMapJob.Status != JobStatus.Succeeded)
@@ -1063,11 +1131,11 @@ namespace PathMet_V2
                 }
 
                 // Check for errors with individual layers.
-                if (results.LayerErrors.Any())
+                if (offlineMapJobResults.LayerErrors.Any())
                 {
                     // Build a string to show all layer errors.
                     System.Text.StringBuilder errorBuilder = new System.Text.StringBuilder();
-                    foreach (KeyValuePair<Layer, Exception> layerError in results.LayerErrors)
+                    foreach (KeyValuePair<Layer, Exception> layerError in offlineMapJobResults.LayerErrors)
                     {
                         errorBuilder.AppendLine(string.Format("{0} : {1}", layerError.Key.Id, layerError.Value.Message));
                     }
@@ -1078,7 +1146,7 @@ namespace PathMet_V2
                 }
 
                 // Display the offline map.
-                MyMapView.Map = results.OfflineMap;
+                MyMapView.Map = offlineMapJobResults.OfflineMap;
 
                 // Apply the original viewpoint for the offline map.
                 MyMapView.SetViewpoint(new Viewpoint(areaOfInterest));
@@ -1088,8 +1156,11 @@ namespace PathMet_V2
 
 
                 // Show a message that the map is offline.
+
                 StatusTxt.Text = "Map has been taken offline.";
                 StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
+
+                currentMapIsOffline = true;
 
                 UserMapsBox.IsEnabled = false;
 
@@ -1097,8 +1168,9 @@ namespace PathMet_V2
 
                 MyMapView.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.Off;
 
-
                 MapSynced();
+
+
 
                 if (sensors == null || sensors.Connected == false)
                 {
@@ -1112,7 +1184,7 @@ namespace PathMet_V2
             catch (TaskCanceledException)
             {
                 // Generate offline map task was canceled.
-                new UserMessageBox("Taking map offline was canceled", "").ShowDialog();
+                new UserMessageBox("Map download was canceled", "").ShowDialog();
             }
             catch (Exception ex)
             {
@@ -1123,10 +1195,12 @@ namespace PathMet_V2
             {
                 // Hide the activity indicator when the job is done.
                 progressIndicator.Visibility = Visibility.Collapsed;
-            }
 
+                downloadMapBtn_border.Background = normalBlueButtonBrush;
+            }
         }
 
+        OfflineMapSyncJob offlineMapSyncJob;
         private bool needMapSync;
         private string mapIdToSync;
         private async Task<bool> SyncOfflineMap(Map map, bool isTimed)
@@ -1150,15 +1224,15 @@ namespace PathMet_V2
                     RollbackOnFailure = true,
                 };
 
-                var job = task.SyncOfflineMap(parameters);
-                job.ProgressChanged += SyncOfflineMapJob_ProgressChanged;
+                offlineMapSyncJob = task.SyncOfflineMap(parameters);
+                offlineMapSyncJob.ProgressChanged += SyncOfflineMapJob_ProgressChanged;
 
-                var results = await job.GetResultAsync();
+                var results = await offlineMapSyncJob.GetResultAsync();
 
                 var successful = false;
 
                 // Check for job failure (writing the output was denied, e.g.).
-                if (job.Status == JobStatus.Succeeded)
+                if (offlineMapSyncJob.Status == JobStatus.Succeeded)
                 {
                     MapSynced();
                     lastSyncTime = DateTime.UtcNow;
@@ -1166,7 +1240,7 @@ namespace PathMet_V2
                 }
                 else
                 {
-                    new UserMessageBox("Offline map sync failed. Job Status: " + job.Status.ToString(), "Map Sync Failed", "error").ShowDialog();
+                    new UserMessageBox("Offline map sync failed. Job Status: " + offlineMapSyncJob.Status.ToString(), "Map Sync Failed", "error").ShowDialog();
                     progressIndicator.Visibility = Visibility.Collapsed;
                     successful = false;
                 }
@@ -1203,7 +1277,7 @@ namespace PathMet_V2
             needMapSync = false;
             mapIdToSync = "";
             SyncBtn.IsEnabled = false;
-            MapSyncStatus.Text = "Map is Synced";
+            MapSyncStatus.Text = "Map Synced";
             MapSyncStatus.Background = System.Windows.Media.Brushes.PowderBlue;
         }
 		
@@ -1213,7 +1287,7 @@ namespace PathMet_V2
             needMapSync = true;
             mapIdToSync = ((Esri.ArcGISRuntime.Portal.LocalItem)MyMapView.Map.Item).OriginalPortalItemId;
             SyncBtn.IsEnabled = true;
-            MapSyncStatus.Text = "Map has not been synced";
+            MapSyncStatus.Text = "Map Not Synced";
             MapSyncStatus.Background = System.Windows.Media.Brushes.LightPink;
         }
 
@@ -1305,17 +1379,42 @@ namespace PathMet_V2
         private void CancelJobButton_Click(object sender, RoutedEventArgs e)
         {
             // The user canceled the job.
-            _generateOfflineMapJob.Cancel();
+            if(_generateOfflineMapJob != null)
+            {
+                _generateOfflineMapJob.Cancel();
+            }
+            
+
+            if(offlineMapSyncJob != null)
+            {
+                offlineMapSyncJob.Cancel();
+            }
         }
 
         #endregion
 
         #region UI_functions
+
+        BrushConverter converter;
+
+        Brush darkenedWhiteButtonBrush;
+        Brush darkenedBlueButtonBrush;
+        Brush normalBlueButtonBrush;
+        Brush normalWhiteButtonBrush;
+
+
+
         private void InitializeUI()
         {
             StatusTxt.Background = System.Windows.Media.Brushes.Red;
             chkbxPm.Background = System.Windows.Media.Brushes.Red;
             chkbxPm.IsChecked = false;
+
+            converter = new BrushConverter();
+            darkenedWhiteButtonBrush = (Brush)converter.ConvertFromString("#ffdddddd");
+            darkenedBlueButtonBrush = (Brush)converter.ConvertFromString("#FF2f81b7");
+            normalWhiteButtonBrush = (Brush)converter.ConvertFromString("#ffffffff");
+            normalBlueButtonBrush = (Brush)converter.ConvertFromString("#ff5caade");
 
             UserMapsBox.IsEnabled = false;
 
@@ -1407,7 +1506,6 @@ namespace PathMet_V2
             PostRunControlsPanel.Visibility = Visibility.Visible;
             submitBtn.IsEnabled = false;
             StatusTxt.Background = System.Windows.Media.Brushes.Transparent;
-
         }
 
         private void UpdateUI_PostRun()
@@ -1416,7 +1514,7 @@ namespace PathMet_V2
             btnStop.IsEnabled = false;
             btnRetryPmConnect.IsEnabled = false;
             txtFName.IsEnabled = false;
-            CommentBox.IsEnabled = false;
+            CommentBox.IsEnabled = true;
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;
             btnBrokenSidewalk.IsEnabled = false;
@@ -1434,7 +1532,7 @@ namespace PathMet_V2
             pmStart.IsEnabled = false;
             btnStop.IsEnabled = true;
             txtFName.IsEnabled = false;
-            CommentBox.IsEnabled = false;
+            CommentBox.IsEnabled = true;
             btnVegetation.IsEnabled = true;
             btnTrippingHazard.IsEnabled = true;
             btnBrokenSidewalk.IsEnabled = true;
@@ -1520,6 +1618,7 @@ namespace PathMet_V2
                     {
                         userNameBox.Text = portal.User.UserName;
                         userNameBox.Visibility = Visibility.Visible;
+                        disconnectedFlagBox.Visibility = Visibility.Collapsed;
 
                         profilePicUri = portal.User.ThumbnailUri;
                         
@@ -1634,11 +1733,21 @@ namespace PathMet_V2
             Task removeCreds =  AuthenticationManager.Current.RemoveAndRevokeAllCredentialsAsync();
             removeCreds.Wait();
 
-            //reset the portal
+            //reset the portal and map
             portal = null;
+            MyMapView.Map = null;
+
+            if (offlineMapJobResults != null)
+            {
+                offlineMapJobResults.MobileMapPackage.Close();
+            }
+
+            //hide the take map offline btn
+            downloadMapBtn.Visibility = Visibility.Collapsed;
 
             userNameBox.Text = "";
             userNameBox.Visibility = Visibility.Collapsed;
+            disconnectedFlagBox.Visibility = Visibility.Collapsed;
 
             profilePic.Source = null;
             profilePic.Visibility = Visibility.Collapsed;
@@ -1656,11 +1765,14 @@ namespace PathMet_V2
             loginBtn.Content = "Log In";
             loginBtn.Click -= LogoutBtn_Click;
             loginBtn.Click += LoginBtn_Click;
+
+            StatusTxt.Text = "Log in to load maps.";
+            StatusTxt.Background = Brushes.Transparent;
         }
 
         private void ClearUserMapsBox()
         {
-            for (int i = 1; i < UserMapsBox.Items.Count ; i++)
+            for (int i = UserMapsBox.Items.Count - 1; i > 0 ; i--)
             {
                 UserMapsBox.Items.RemoveAt(i);
             }
@@ -1712,7 +1824,6 @@ namespace PathMet_V2
                 if (foundItems.Count > 0)
                 {
                     
-
                     foreach (PortalItem item in foundItems)
                     {
                         foundMaps.Add(new Map(item));
@@ -1775,6 +1886,7 @@ namespace PathMet_V2
             {
                 userNameBox.Text = userName;
                 userNameBox.Visibility = Visibility.Visible;
+                disconnectedFlagBox.Visibility = Visibility.Visible;
 
                 loginBtn.Content = "Log Out";
                 loginBtn.Click -= LoginBtn_Click;
@@ -1784,13 +1896,13 @@ namespace PathMet_V2
             }
         }
 
-        private void LoadInOfflineMaps()
+        private async Task<bool> LoadInOfflineMaps()
         {
             bool userFound = SignInKeptUser();
 
             if (!userFound)
             {
-                return;
+                return false;
             }
 
             string userName = this.userNameBox.Text;
@@ -1813,14 +1925,25 @@ namespace PathMet_V2
                     {
                         try
                         {
-                            //turn each folder into map
-                            MobileMapPackage offlineMapPackage = MobileMapPackage.OpenAsync(Path.Combine(offlineMapsFolder, mmpkName)).Result;
-                            foundMaps.Add(offlineMapPackage.Maps.First());
-                            offlineMapPackage.Close();
+                            string folderPath = Path.Combine(offlineMapsFolder, mmpkName);
+                            //check that folder has an .info file to make sure it can be loaded without an error
+                            var foundPackageInfoFiles = Directory.GetFiles(folderPath, "*.info");
+                            if (foundPackageInfoFiles.Length > 0)
+                            {
+                                //turn the folder into map
+                                MobileMapPackage offlineMapPackage = await MobileMapPackage.OpenAsync(Path.Combine(offlineMapsFolder, mmpkName));
+                                await offlineMapPackage.LoadAsync();
+                                foundMaps.Add(offlineMapPackage.Maps.First());
+                                offlineMapPackage.Close();
+                            }
+                            else
+                            {
+                                Directory.Delete(folderPath, true);
+                            }
                         }
-                        catch
+                        catch(Exception e)
                         {
-                            new UserMessageBox("MapId: " + parts[0] + " failed to load from device. Alternatively, you can delete the folder at " + Path.Combine(Properties.Settings.Default.LogPath, offlineMapsFolder, parts[0]), "Loading Offline Map Failed", "error").ShowDialog();
+                            new UserMessageBox("MapId: " + parts[0] + " failed to load from device. Error: " + e.Message + " Alternatively, you can delete the folder at " + Path.Combine(offlineMapsFolder, mmpkName) , "Loading Offline Map Failed", "error").ShowDialog();
                         }
                     }
                 }
@@ -1830,11 +1953,12 @@ namespace PathMet_V2
             if(foundMaps.Count > 0)
             {
                 PopulateMapDropdown(foundMaps, false);
+                return true;
             }
             else
             {
-                
-              new UserMessageBox("", "No offlineMaps avialable for the logged in user", "error").ShowDialog();
+              new UserMessageBox("No offline maps available", "No offline maps avialable for the logged in user", "error").ShowDialog();
+                return false;
                 
             }
 
@@ -1865,31 +1989,56 @@ namespace PathMet_V2
         #endregion
 
 
-        private void ReviewBtn_Click(object sender, RoutedEventArgs e)
+        private async void ReviewBtn_Click(object sender, RoutedEventArgs e)
         {
             List<String> imgPaths = Directory.GetFiles(sensors.directory, "*.png").ToList();
             ReviewImagesWindow r = new ReviewImagesWindow(imgPaths);
+
+            reviewBtn_border.Background = darkenedWhiteButtonBrush;
+
             r.ShowDialog();
+
+            await Task.Delay(250);
+            reviewBtn_border.Background = normalWhiteButtonBrush;
         }
 
-        private void LoginBtn_Click(object sender, RoutedEventArgs e)
+        private async void LoginBtn_Click(object sender, RoutedEventArgs e)
         { 
             ConnectAndGetMaps();
+
+            loginBtn_border.Background = darkenedBlueButtonBrush;
+            await Task.Delay(200);
+            loginBtn_border.Background = normalBlueButtonBrush;
         }
 
-        private void LogoutBtn_Click(object sender, RoutedEventArgs e)
+        private async void LogoutBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (needMapSync)
+            loginBtn_border.Background = darkenedBlueButtonBrush;
+
+            if (MyMapView.Map != null)
             {
+                    string needSyncMsg = "Current map has not been synced. Logging out will not update the online ArcGIS map with the current map on this device. Run data will still be available in the file system.";
+                    string dontNeedSyncMsg = "If you log out, the currently selected map will not be available until you log back in.";
+                    string msg = (needMapSync ? needSyncMsg : dontNeedSyncMsg) + " Are you sure you want to log out now?";
+                    bool result = (bool)new UserMessageBox(msg, "Log out?", "yesno").ShowDialog();
 
-                bool result = (bool)new UserMessageBox("Current map has not been synced. Logging out will not update the online ArcGIS map with the current map on this device. However, run data will still be available in the file system. Are you sure you want to log out now?", "Log out Without Syncing?", "yesno").ShowDialog();
+                    if (result)
+                    {
+                        //user is okay with logging out. Save info about the unsynced map
+                        if(needMapSync)
+                            AddToMapsToSync();
+                    }
+                    else
+                    {
+                        // If user doesn't want to log out, just return
+                        return;
+                    }
+            }
+            else
+            {
+                bool result = (bool)new UserMessageBox("Are you sure you want to log out?","Log out?", "yesno").ShowDialog();
 
-                if (result)
-                {
-                    //user is okay with logging out. Save info about the unsynced map
-                    AddToMapsToSync();
-                }
-                else
+                if (!result)
                 {
                     // If user doesn't want to log out, just return
                     return;
@@ -1897,10 +2046,15 @@ namespace PathMet_V2
             }
 
             SignOut();
+
+            await Task.Delay(200);
+            loginBtn_border.Background = normalBlueButtonBrush;
         }
 
-        private void Sync_Clicked(object sender, RoutedEventArgs e)
+        private async void Sync_Clicked(object sender, RoutedEventArgs e)
         {
+            SyncBtn_border.Background = darkenedBlueButtonBrush;
+
             if (dropDownMapsAreOnline)
             {
                 SyncOfflineMap(MyMapView.Map, false);
@@ -1909,6 +2063,9 @@ namespace PathMet_V2
             {
                 new UserMessageBox("Reconnect to the internet and log in again to be able to sync.", "Unable to Sync Map").ShowDialog();
             }
+
+            await Task.Delay(250);
+            SyncBtn_border.Background = normalBlueButtonBrush;
         }
 
         #region timedMapSync
