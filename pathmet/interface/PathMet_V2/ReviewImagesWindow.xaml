@@ -67,7 +67,7 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="7*"/>
 			</Grid.RowDefinitions>
-			<ComboBox x:Name="imgNumberBox" Grid.Row="0" Grid.Column="1" Background="Transparent" FontSize="20" Width="100" BorderBrush="{x:Null}" BorderThickness="0"/>
+			<ComboBox x:Name="imgNumberBox" Grid.Row="0" Grid.Column="1" Background="Transparent" FontSize="20" Width="100" BorderBrush="{x:Null}" BorderThickness="0" VerticalAlignment="Center" Padding="5"/>
             <Border CornerRadius="10" Background="White" Margin="5" Grid.Column="0" Grid.Row="1" >
                 <Border.Effect>
                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>

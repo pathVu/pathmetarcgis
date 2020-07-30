@@ -1281,7 +1281,6 @@ C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\Path
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2_Content.g.cs
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2_MarkupCompile.cache
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2_MarkupCompile.lref
-C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\obj\Release\PathMet_V2.csprojAssemblyReference.cache
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\arcgisruntime100.8\resources\shaders\atmosphere_accurate_3d_ps.cso
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\arcgisruntime100.8\resources\shaders\atmosphere_accurate_3d_vs.cso
 C:\Users\Xboxr\Documents\Summer 2020\pathVu\pathmetarcgis\pathmet\interface\PathMet_V2\bin\Release\arcgisruntime100.8\resources\shaders\atmosphere_accurate_ps.cso

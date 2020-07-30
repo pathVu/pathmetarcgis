@@ -135,6 +135,12 @@
         <!-- Drawing edit and restart buttons-->
         <StackPanel x:Name="pathDrawingControls" Margin="5,5,5,25" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Visible" Orientation="Horizontal" Grid.Column="0">
             <!--Button Content="Edit" x:Name="editBtn" Margin="5" Padding="5" Click="EditButtonClick" FontSize="16" Visibility="Collapsed" />-->
+            <Border CornerRadius="10" x:Name="undoBtn_border" Background="White" Margin="5" HorizontalAlignment="Center" >
+                <Border.Effect>
+                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
+                </Border.Effect>
+                <Button Content="Undo" x:Name="undoBtn" Padding="30,5" FontSize="18" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Click="UndoLastVertex" Style="{DynamicResource ButtonStyle1}"/>
+            </Border>
             <Border x:Name="drawnLineStatusIndicator" BorderBrush="Red" BorderThickness="4"  CornerRadius="10" Background="White" VerticalAlignment="Center" Margin="5" HorizontalAlignment="Center" >
                 <Border.Effect>
                     <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
@@ -163,12 +169,7 @@
 
                 </Grid>
             </Border>
-            <Border CornerRadius="10" x:Name="undoBtn_border" Background="White" Margin="5" HorizontalAlignment="Center" >
-                <Border.Effect>
-                    <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
-                </Border.Effect>
-                <Button Content="Undo" x:Name="undoBtn" Padding="10 5" FontSize="18" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Click="UndoLastVertex" Style="{DynamicResource ButtonStyle1}"/>
-            </Border>
+            
         </StackPanel>
         <Grid x:Name="progressIndicator" Background="#B2434343" Visibility="Collapsed" Grid.Column="0">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
