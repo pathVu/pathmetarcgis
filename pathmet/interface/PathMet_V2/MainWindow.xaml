@@ -11,7 +11,6 @@
         WindowStyle="SingleBorderWindow"
         Icon="pathmet_icon.ico"
         Closing="Window_Closing" d:DesignWidth="1368" d:DesignHeight="912">
-
     <Window.Resources>
 
         <VisualBrush x:Key="RunNameHint" AlignmentX="Center" AlignmentY="Center" Stretch="None" >
@@ -226,6 +225,8 @@
                             <Button x:Name="loginBtn" Content="Login" Padding="10 5" BorderBrush="Transparent" BorderThickness="0" Click="LoginBtn_Click" Foreground="White"  FontSize="18" Background="Transparent" VerticalAlignment="Center" SnapsToDevicePixels="True" Style="{DynamicResource ButtonStyle1}"/>
                         </Border>
                     </StackPanel>
+
+                    <ProgressBar x:Name="UserDataProgressIndicator" Grid.Row="1" Panel.ZIndex="2" Visibility="Collapsed" IsIndeterminate="True"/>
 
                     <TextBlock Name="PathMetTitle" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
                         <Run Foreground="#0A6893" Text="WELCOME TO"/>

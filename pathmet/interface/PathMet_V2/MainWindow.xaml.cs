@@ -40,6 +40,7 @@ namespace PathMet_V2
             
             InitializeUI();
 
+
             ConnectAndGetMaps();
 
             //at this point, we've tried to automatically sign in the user.
@@ -51,6 +52,9 @@ namespace PathMet_V2
         
         private async void ConnectAndGetMaps()
         {
+
+            if (currentOfflineMmpk != null)
+                currentOfflineMmpk.Close();
 
             if (!InternetConnected())
             {
@@ -83,6 +87,8 @@ namespace PathMet_V2
                     new UserMessageBox("Could not authenticate or create portal connection for this user. Try signing in again.", "Could not Authenticate User.", "error").ShowDialog();
                 }
             }
+
+            UserDataProgressIndicator.Visibility = Visibility.Collapsed;
         }
 
         private void OnMapLoadStatusChanged(object sender, LoadStatusEventArgs e)
@@ -252,6 +258,9 @@ namespace PathMet_V2
             }
 
             MyMapView.Map = null;
+
+            if (currentOfflineMmpk != null)
+                currentOfflineMmpk.Close();
 
         }
 
@@ -500,7 +509,8 @@ namespace PathMet_V2
                 //if(availablefields.Contains("Comments"))
                 //    newRunFeature.SetAttributeValue("Comments", CommentBox.Text);
 
-                SaveCommentAsTxt(CommentBox.Text);
+                if (CommentBox.Text != "")
+                    SaveCommentAsTxt(CommentBox.Text);
 
                 //upload newly created feature to featuretable
                 await runFeatureTable.AddFeatureAsync(newRunFeature);
@@ -658,7 +668,6 @@ namespace PathMet_V2
             //if user selected the first item, which is not a map, load nothing
             if (UserMapsBox.SelectedIndex < 1)
             {
-                //MyMapView.Map = new Map();
                 MyMapView.Map = null;
                 UpdateUI_waitForMapChosen();
             }
@@ -691,11 +700,66 @@ namespace PathMet_V2
                 //set the flag based on if the dropdown maps are online or not. 
                 currentMapIsOffline = !dropDownMapsAreOnline;
 
-                InitializeMap((Map)(((ComboBoxItem)UserMapsBox.SelectedItem).Tag));
+                if (!currentMapIsOffline)
+                {
+                    InitializeMap((Map)(((ComboBoxItem)UserMapsBox.SelectedItem).Tag));
+                }
+                else
+                {
+                    InitializeOfflineMap((Map)(((ComboBoxItem)UserMapsBox.SelectedItem).Tag));
+                }
                 prevSelectedIndex = UserMapsBox.SelectedIndex;
             }
         }
 
+        MobileMapPackage currentOfflineMmpk;
+
+        private async void InitializeOfflineMap(Map chosenMap)
+        {
+            if (currentOfflineMmpk != null)
+                currentOfflineMmpk.Close();
+
+            string userName = this.userNameBox.Text;
+
+            string[] offlineMaps = Directory.GetDirectories(offlineMapsFolder).Select(Path.GetFileName).ToArray();
+
+            List<Map> foundMaps = new List<Map>();
+
+            for (int i = 0; i < offlineMaps.Length; i++)
+            {
+                string mmpkName = offlineMaps[i];
+                string mapId = ((Esri.ArcGISRuntime.Portal.LocalItem)chosenMap.Item).OriginalPortalItemId;
+                //if the username and map correspond to what we've chosen, load that map in and keep the reference to it's mmpk
+                if (mmpkName.Equals($"{mapId}_{userName}"))
+                {
+                    try
+                    {
+                        string folderPath = Path.Combine(offlineMapsFolder, mmpkName);
+                        //check that folder has an .info file to make sure it can be loaded without an error
+                        var foundPackageInfoFiles = Directory.GetFiles(folderPath, "*.info");
+                        if (foundPackageInfoFiles.Length > 0)
+                        {
+                            //turn the folder into map
+                            currentOfflineMmpk = await MobileMapPackage.OpenAsync(Path.Combine(offlineMapsFolder, mmpkName));
+                            await currentOfflineMmpk.LoadAsync();
+
+                            var loadedMap = currentOfflineMmpk.Maps.First();
+
+                            InitializeMap(loadedMap);
+                        }
+                        else
+                        {
+                            Directory.Delete(folderPath, true);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        new UserMessageBox("MapId: " + mapId + " failed to load from device. Error: " + e.Message, "Loading Offline Map Failed", "error").ShowDialog();
+                    }
+                }
+                
+            }
+        }
 
         private void InitializeMap(Map inputMap)
         {
@@ -1152,7 +1216,8 @@ namespace PathMet_V2
 
                 if (Directory.Exists(currentOfflineMapdatafolder))
                 {
-                    //unregister this map id before taking a new instance offline
+                    //TODO unregister this map id before taking a new instance offline
+                    //UnregisterGeodatabases(currentOfflineMapdatafolder); //Not implemented yet
 
                     Directory.Delete(currentOfflineMapdatafolder, true);
                 }
@@ -1252,6 +1317,16 @@ namespace PathMet_V2
 
                 downloadMapBtn_border.Background = normalBlueButtonBrush;
             }
+        }
+
+        private async void UnregisterGeodatabases(string currentOfflineMapdatafolder)
+        {
+            //NOT IMPLEMENTED. is not required for functionality.
+
+            //turn path into map
+
+            //loop through geodatabases and unregister them
+
         }
 
         OfflineMapSyncJob offlineMapSyncJob;
@@ -1770,7 +1845,9 @@ namespace PathMet_V2
                 var crd = await AuthenticationManager.Current.GetCredentialAsync(cri, false);
 
                 AuthenticationManager.Current.AddCredential(crd);
-                
+
+                UserDataProgressIndicator.Visibility = Visibility.Visible;
+
                 return true;
             }
             catch
@@ -1795,6 +1872,9 @@ namespace PathMet_V2
             {
                 offlineMapJobResults.MobileMapPackage.Close();
             }
+
+            if (currentOfflineMmpk != null)
+                currentOfflineMmpk.Close();
 
             //hide the take map offline btn
             downloadMapBtn.Visibility = Visibility.Collapsed;
@@ -1975,6 +2055,7 @@ namespace PathMet_V2
                 if (parts.Length >= 2)
                 {
                     //if part that corresponds to username matches the user that was kept, open that file as a map
+                    //EDIT: just show the name of that map in the dropdown, don't keep it loaded in as a map yet.
                     if (parts[1].Equals(userName))
                     {
                         try
@@ -1987,8 +2068,11 @@ namespace PathMet_V2
                                 //turn the folder into map
                                 MobileMapPackage offlineMapPackage = await MobileMapPackage.OpenAsync(Path.Combine(offlineMapsFolder, mmpkName));
                                 await offlineMapPackage.LoadAsync();
-                                foundMaps.Add(offlineMapPackage.Maps.First());
-                                offlineMapPackage.Close();
+                                
+                                var loadedMap = offlineMapPackage.Maps.First();
+
+                                foundMaps.Add(loadedMap);
+                                offlineMapPackage.Close(); //this is what was causing the map to show incorrectly.
                             }
                             else
                             {
