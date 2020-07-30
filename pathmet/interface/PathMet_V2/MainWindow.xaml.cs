@@ -20,6 +20,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -472,7 +473,7 @@ namespace PathMet_V2
         {
             try
             {
-                //CURRENTLY IT IS HARDCODED THAT THE SECOND LAYER, LAYER[1], IS THE ONE THAT WE ARE WRITING THE RUN LINES TO
+                //CURRENTLY IT IS HARDCODED THAT THE SECOND LAYER, LAYER[0], IS THE ONE THAT WE ARE WRITING THE RUN LINES TO
                 FeatureLayer runsLayer = MyMapView.Map.OperationalLayers[1] as FeatureLayer;
                 GeodatabaseFeatureTable runFeatureTable = (GeodatabaseFeatureTable)runsLayer.FeatureTable;
 
@@ -484,10 +485,22 @@ namespace PathMet_V2
 
                 //set feature attributes
                 String runName = txtFName.Text;
-                newRunFeature.SetAttributeValue("Completion", "Complete");
-                newRunFeature.SetAttributeValue("Run", runName);
-                newRunFeature.SetAttributeValue("Street_Type", "Sidewalk");
-                newRunFeature.SetAttributeValue("Comments", CommentBox.Text);
+
+                List<string> availablefields = runFeatureTable.Fields.Select(x => x.Name).ToList();
+
+                if(availablefields.Contains("Completion"))
+                    newRunFeature.SetAttributeValue("Completion", "Complete");
+
+                if(availablefields.Contains("Run"))
+                    newRunFeature.SetAttributeValue("Run", runName);
+
+                if(availablefields.Contains("Street_Type"))
+                    newRunFeature.SetAttributeValue("Street_Type", "Sidewalk");
+
+                //if(availablefields.Contains("Comments"))
+                //    newRunFeature.SetAttributeValue("Comments", CommentBox.Text);
+
+                SaveCommentAsTxt(CommentBox.Text);
 
                 //upload newly created feature to featuretable
                 await runFeatureTable.AddFeatureAsync(newRunFeature);
@@ -506,6 +519,18 @@ namespace PathMet_V2
             }
 
             ResetForNewRun(true);
+        }
+
+        private void SaveCommentAsTxt(string commentText)
+        {
+            try
+            {
+                File.WriteAllText(Path.Combine(sensors.directory, "Comment.txt"), commentText);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private void ResetForNewRun(bool increment)
@@ -839,96 +864,125 @@ namespace PathMet_V2
         readonly bool freePointsAllowed = true;
         private async Task<MapPoint> SnapToLine(MapPoint inputPt)
         {
-            //IT IS CURRENTLY HARDCODED THAT THE FIRST, 0TH, LAYER IS THE ONE USED FOR SNAPPING
-            FeatureLayer _featureLayer = MyMapView.Map.OperationalLayers.First<Layer>() as FeatureLayer;
+            //this version checks all layers for a closest point
+            LayerCollection _featureLayers = MyMapView.Map.OperationalLayers;
 
-            FeatureQueryResult SelectionResult;
-            MapPoint snappedPoint = inputPt;
-            bool inputSnapped = false;
+            // this is essentially the range of snapping to any path
+            double tolerance = 25;
 
-            try
+            //If the distance to nearest vertex is less than this value, snap to the nearest vertex. Higher values snap to the vertex from farther away.
+            //It does not have a unit, since it is relative to the current MapScale
+            //.05 will snap to a vertex if you click within 1/20th of the scale of the screen
+            double vertexSnapDistance = .01; //.01 is tested value
+
+            // Convert the tolerance to map units.
+            double mapTolerance = tolerance * MyMapView.UnitsPerPixel;
+
+            // This is to keep track if we are dealing with a vertex override that only other vertex snaps should be able to override.
+            bool overallIsVertex = false;
+            MapPoint closestOverallPoint = null;
+
+            if (freePointsAllowed)
             {
-                // this is essentially the range of snapping to any path
-                double tolerance = 15;
+                closestOverallPoint = inputPt;
+            }
+            
+            double closestOverallDistance = 1000000000;
 
-                //If the distance to nearest vertex is less than this value, snap to the nearest vertex. Higher values snap to the vertex from farther away.
-                //It does not have a unit, since it is relative to the current MapScale
-                //.05 will snap to a vertex if you click within 1/20th of the scale of the screen
-                double vertexSnapDistance = .01;
+            // Normalize the geometry if wrap-around is enabled.
+            //    This is necessary because of how wrapped-around map coordinates are handled by Runtime.
+            //    Without this step, querying may fail because wrapped-around coordinates are out of bounds.
+            if (MyMapView.IsWrapAroundEnabled)
+            {
+                inputPt = (MapPoint)GeometryEngine.NormalizeCentralMeridian(inputPt);
+            }
 
-                // Convert the tolerance to map units.
-                double mapTolerance = tolerance * MyMapView.UnitsPerPixel;
+            // Define the envelope around the tap location for selecting features.
+            Envelope selectionEnvelope = new Envelope(inputPt.X - mapTolerance, inputPt.Y - mapTolerance, inputPt.X + mapTolerance,
+                inputPt.Y + mapTolerance, MyMapView.Map.SpatialReference);
 
-                // Normalize the geometry if wrap-around is enabled.
-                //    This is necessary because of how wrapped-around map coordinates are handled by Runtime.
-                //    Without this step, querying may fail because wrapped-around coordinates are out of bounds.
-                if (MyMapView.IsWrapAroundEnabled)
+            // Define the query parameters for selecting features.
+            QueryParameters queryParams = new QueryParameters
+            {
+                // Set the geometry to selection envelope for selection by geometry.
+                Geometry = selectionEnvelope
+            };
+
+            foreach (FeatureLayer _featureLayer in _featureLayers)
+            {
+
+                MapPoint closestPointInThisLayer = null;
+                double closestDistanceInThisLayer = 10000000;
+                bool snappedInThisLayer = false;
+                bool snappedToVertexInThisLayer = false;
+                FeatureQueryResult SelectionResult;
+
+                try
                 {
-                    inputPt = (MapPoint)GeometryEngine.NormalizeCentralMeridian(inputPt);
-                }
+                    // Select the features based on query parameters defined above.
+                    SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
+                    _featureLayer.ClearSelection();
 
-                // Define the envelope around the tap location for selecting features.
-                Envelope selectionEnvelope = new Envelope(inputPt.X - mapTolerance, inputPt.Y - mapTolerance, inputPt.X + mapTolerance,
-                    inputPt.Y + mapTolerance, MyMapView.Map.SpatialReference);
-
-                // Define the query parameters for selecting features.
-                QueryParameters queryParams = new QueryParameters
-                {
-                    // Set the geometry to selection envelope for selection by geometry.
-                    Geometry = selectionEnvelope
-                };
-
-                // Select the features based on query parameters defined above.
-                SelectionResult = await _featureLayer.SelectFeaturesAsync(queryParams, Esri.ArcGISRuntime.Mapping.SelectionMode.New);
-                _featureLayer.ClearSelection();
-
-                if (SelectionResult.Count() > 0)
-                {
-                    //get closest coordinate 
-                    ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, inputPt);
-
-                    //get closest vertex 
-                    ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, inputPt);
-
-                    //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
-
-                    if (nearestVert.Distance > MyMapView.MapScale * vertexSnapDistance)
+                    if (SelectionResult.Count() > 0)
                     {
-                        snappedPoint = nearestCoord.Coordinate;
-                        inputSnapped = true;
-                    }
-                    else
-                    {
-                        snappedPoint = nearestVert.Coordinate;
-                        inputSnapped = true;
+                        //get closest coordinate 
+                        ProximityResult nearestCoord = GeometryEngine.NearestCoordinate(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                        //get closest vertex 
+                        ProximityResult nearestVert = GeometryEngine.NearestVertex(SelectionResult.ElementAt(0).Geometry, inputPt);
+
+                        //set the snapped point to the closest coordinate or the closest vertex if within the vertexSnapDistance
+
+                        if (nearestVert.Distance > MyMapView.MapScale * vertexSnapDistance)
+                        {
+                            //nearest vertex is out of vertex snap range, snap to closest coord instead
+                            closestPointInThisLayer = nearestCoord.Coordinate;
+                            closestDistanceInThisLayer = nearestCoord.Distance;
+                            snappedInThisLayer = true;
+
+                        }
+                        else
+                        {
+                            //nearest veretx is within snapping range, snap to it
+                            closestPointInThisLayer = nearestVert.Coordinate;
+                            closestDistanceInThisLayer = nearestVert.Distance;
+                            snappedInThisLayer = true;
+                            snappedToVertexInThisLayer = true;
+                        }
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    if (freePointsAllowed) {
-                        return inputPt;
-                    } else { 
-                        //line could not snap
-                        return null;
-                    }
+                    Console.WriteLine($"exception in snapToLine on layer {_featureLayer.Name}, not snapping in this layer. Exception: {ex.Message}");
+                    continue;
                 }
 
-            }
-            catch (Exception ex)
-            {
-                new UserMessageBox(ex.Message, "Exception in SnapToLine").ShowDialog();
+                if (snappedInThisLayer)
+                {
+                    if(overallIsVertex == snappedToVertexInThisLayer)
+                    {
+                        //this means that either neither the overall snapped point nor the layer snapped point are vertices or they both are.
+                        //normal comparison
+                        if (closestDistanceInThisLayer < closestOverallDistance)
+                        {
+                            closestOverallDistance = closestDistanceInThisLayer;
+                            closestOverallPoint = closestPointInThisLayer;
+                            //we don't need to update overallIsVertex since it must match what this layer would set it to.
+                        }
+                    }else if (snappedToVertexInThisLayer)
+                    {
+                        //one is a vertex and the other is not. If the layer snapped point is a vertex, it just wins and becomes the overall
+                        closestOverallDistance = closestDistanceInThisLayer;
+                        closestOverallPoint = closestPointInThisLayer;
+                        overallIsVertex = true;
+                    }
+                    //else would be that the overall point is a vertex and the layer is not, in which case, the layer will never win, so no logic is needed.
+                    
+                }
             }
 
-            if (inputSnapped)
-            {
-                return snappedPoint;
-            }
-            else
-            {
-                return null;
-            }
+            return closestOverallPoint;
         }
-
 
         private void WaitForEndPt()
         {
@@ -1668,7 +1722,7 @@ namespace PathMet_V2
             // Register this server with AuthenticationManager.
             AuthenticationManager.Current.RegisterServer(serverInfo);
 
-            // Use the custom OAuthAuthorize class (defined in this module) to handle OAuth communication.
+            // Use the custom OAuthAuthorize class to handle OAuth communication.
             AuthenticationManager.Current.OAuthAuthorizeHandler = new OAuthAuthorize();
 
 

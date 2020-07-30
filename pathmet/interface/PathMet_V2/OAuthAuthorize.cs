@@ -66,7 +66,6 @@ namespace PathMet_V2
 
             // Handle the navigating event for the browser to check for a response sent to the redirect URL.
             authBrowser.Navigating += WebBrowserOnNavigating;
-            authBrowser.RenderSize = new Size((SystemParameters.PrimaryScreenWidth * 0.75), (SystemParameters.PrimaryScreenHeight * 0.75));
             
             // Display the web browser in a new window.
             _authWindow = new Window
