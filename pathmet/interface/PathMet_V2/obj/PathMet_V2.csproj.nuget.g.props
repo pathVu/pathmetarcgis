@@ -5,9 +5,9 @@
     <RestoreTool Condition=" '$(RestoreTool)' == '' ">NuGet</RestoreTool>
     <ProjectAssetsFile Condition=" '$(ProjectAssetsFile)' == '' ">$(MSBuildThisFileDirectory)project.assets.json</ProjectAssetsFile>
     <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
-    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">C:\Users\Xboxr\.nuget\packages\</NuGetPackageFolders>
+    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">C:\Users\Charles\.nuget\packages\;C:\Microsoft\Xamarin\NuGet\</NuGetPackageFolders>
     <NuGetProjectStyle Condition=" '$(NuGetProjectStyle)' == '' ">PackageReference</NuGetProjectStyle>
-    <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">5.6.0</NuGetToolVersion>
+    <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">5.5.0</NuGetToolVersion>
   </PropertyGroup>
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -16,7 +16,7 @@
     <Import Project="$(NuGetPackageRoot)opencvsharp3-anycpu\4.0.0.20181129\build\OpenCvSharp3-AnyCPU.props" Condition="Exists('$(NuGetPackageRoot)opencvsharp3-anycpu\4.0.0.20181129\build\OpenCvSharp3-AnyCPU.props')" />
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <PkgEsri_ArcGISRuntime_WPF Condition=" '$(PkgEsri_ArcGISRuntime_WPF)' == '' ">C:\Users\Xboxr\.nuget\packages\esri.arcgisruntime.wpf\100.8.0</PkgEsri_ArcGISRuntime_WPF>
-    <PkgEsri_ArcGISRuntime_Toolkit Condition=" '$(PkgEsri_ArcGISRuntime_Toolkit)' == '' ">C:\Users\Xboxr\.nuget\packages\esri.arcgisruntime.toolkit\100.8.0</PkgEsri_ArcGISRuntime_Toolkit>
+    <PkgEsri_ArcGISRuntime_WPF Condition=" '$(PkgEsri_ArcGISRuntime_WPF)' == '' ">C:\Users\Charles\.nuget\packages\esri.arcgisruntime.wpf\100.8.0</PkgEsri_ArcGISRuntime_WPF>
+    <PkgEsri_ArcGISRuntime_Toolkit Condition=" '$(PkgEsri_ArcGISRuntime_Toolkit)' == '' ">C:\Users\Charles\.nuget\packages\esri.arcgisruntime.toolkit\100.8.0</PkgEsri_ArcGISRuntime_Toolkit>
   </PropertyGroup>
 </Project>

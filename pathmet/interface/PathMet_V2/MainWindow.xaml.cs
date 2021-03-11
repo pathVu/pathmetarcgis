@@ -447,15 +447,17 @@ namespace PathMet_V2
             pmStart.IsEnabled = false;
             btnRetryPmConnect.IsEnabled = false;
 
+            txtFName.Text = DateTime.Now.ToString("MMddyyyyHHmmss");
 
-            string name = txtFName.Text;
-            if (name == "")
-            {
-                name = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
-            }
+            //commented out because we want to always use the timestamp. We also hid the run name field.
+            //string name = txtFName.Text;
+            //if (name == "")
+            //{
+            //    name = DateTime.Now.ToString("yyyyMMddHHmmss");
+            //}
 
             //sensors will call updateUI
-            sensors.Start(name);
+            sensors.Start(txtFName.Text);
             CurrentRunFolderPath = sensors.directory;
             lastStartTime = DateTime.UtcNow;
         }
@@ -545,11 +547,11 @@ namespace PathMet_V2
 
         private void ResetForNewRun(bool increment)
         {
-
-            if (increment)
-            {
-                IncrementRunName();
-            }
+            //we are no longer letting users enter their own run name. Everything happens behind the scenes and it is just the timestamp now
+            //if (increment)
+            //{
+            //    IncrementRunName();
+            //}
 
             //clear currentRunGeom
             currentRunGeom = null;
@@ -1606,7 +1608,7 @@ namespace PathMet_V2
             CommentBox.IsEnabled = true;
             if (txtFName.Text == "")
             {
-                txtFName.Text = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
+                txtFName.Text = DateTime.Now.ToString("MMddyyyyHHmmss");
             }
             btnVegetation.IsEnabled = false;
             btnTrippingHazard.IsEnabled = false;

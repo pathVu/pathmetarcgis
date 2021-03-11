@@ -259,7 +259,7 @@
                 <Grid >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="2*"/>
-                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="*"/>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
@@ -283,7 +283,8 @@
                         </Grid>
                     </Border>
 
-                    <Border CornerRadius="10" Background="White" Margin="2" BorderBrush="Transparent" BorderThickness="0"  Grid.Row="1" VerticalAlignment="Center" >
+                    
+                    <Border Visibility="Collapsed" CornerRadius="10" Background="White" Margin="2" BorderBrush="Transparent" BorderThickness="0"  Grid.Row="1" VerticalAlignment="Center" >
                         <Border.Effect>
                             <DropShadowEffect Direction="225" Opacity="0.2" BlurRadius="10" ShadowDepth="3"/>
                         </Border.Effect>
@@ -303,8 +304,6 @@
                             </TextBox.Style>
                         </TextBox>
                     </Border>
-
-
 
                     <Border CornerRadius="10" Background="White" Padding="10,10" Grid.Row="2">
                         <Border.Effect>

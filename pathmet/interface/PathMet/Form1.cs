@@ -160,20 +160,20 @@ namespace PathMet
             sensors.Stop();
 
             // if txtFName ends with a number, increment it
-            string name = txtFName.Text;
+            //string name = txtFName.Text;
 
-            var match = Regex.Match(name, "\\d+$");
-            if (match.Success)
-            {
-                int n = int.Parse(match.Value);
-                name = name.Substring(0, name.Length - match.Value.Length) + String.Format("{0}", n + 1);
-            }
-            else if (name != "")
-            {
-                name = name + "2";
-            }
+            //var match = Regex.Match(name, "\\d+$");
+            //if (match.Success)
+            //{
+            //    int n = int.Parse(match.Value);
+            //    name = name.Substring(0, name.Length - match.Value.Length) + String.Format("{0}", n + 1);
+            //}
+            //else if (name != "")
+            //{
+            //    name = name + "2";
+            //}
 
-            txtFName.Text = name;
+            //txtFName.Text = name;
         }
 
         private void OnClick(object sender, EventArgs e)
@@ -190,7 +190,7 @@ namespace PathMet
             string name = txtFName.Text;
             if (name == "")
             {
-                name = DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
+                name = DateTime.Now.ToString("MMddyyyyHHmmss");
             }
 
             sensors.Start(name);

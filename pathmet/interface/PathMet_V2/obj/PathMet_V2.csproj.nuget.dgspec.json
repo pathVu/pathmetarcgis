@@ -1,28 +1,33 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {}
+    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {
+    "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+        "projectUniqueName": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
         "projectName": "PathMet_V2",
-        "projectPath": "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
-        "packagesPath": "C:\\Users\\Xboxr\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Xboxr\\Documents\\Summer 2020\\pathVu\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\obj\\",
+        "projectPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\PathMet_V2.csproj",
+        "packagesPath": "C:\\Users\\Charles\\.nuget\\packages\\",
+        "outputPath": "R:\\DocumentsHDD\\Summer 2020\\pathVu\\pathMet interface\\pathmetarcgis\\pathmet\\interface\\PathMet_V2\\obj\\",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
+        "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet\\"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Xboxr\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Charles\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net472"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Users\\Charles\\AppData\\Local\\Esri\\NuGet": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
